@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import {
-  Grid2 as Grid,
+  Grid,
   Card,
   CardContent,
   Typography,
@@ -94,7 +94,7 @@ export default function MetricsDashboard({ recitations }: MetricsDashboardProps)
 
   return (
     <Grid container spacing={3}>
-      <Grid xs={12} md={3}>
+      <Grid item xs={12} md={3}>
         <Card>
           <CardContent>
             <Typography color="textSecondary" gutterBottom>
@@ -107,7 +107,7 @@ export default function MetricsDashboard({ recitations }: MetricsDashboardProps)
         </Card>
       </Grid>
       
-      <Grid xs={12} md={3}>
+      <Grid item xs={12} md={3}>
         <Card>
           <CardContent>
             <Typography color="textSecondary" gutterBottom>
@@ -120,7 +120,7 @@ export default function MetricsDashboard({ recitations }: MetricsDashboardProps)
         </Card>
       </Grid>
       
-      <Grid xs={12} md={3}>
+      <Grid item xs={12} md={3}>
         <Card>
           <CardContent>
             <Typography color="textSecondary" gutterBottom>
@@ -133,7 +133,7 @@ export default function MetricsDashboard({ recitations }: MetricsDashboardProps)
         </Card>
       </Grid>
       
-      <Grid xs={12} md={3}>
+      <Grid item xs={12} md={3}>
         <Card>
           <CardContent>
             <Typography color="textSecondary" gutterBottom>
@@ -146,7 +146,7 @@ export default function MetricsDashboard({ recitations }: MetricsDashboardProps)
         </Card>
       </Grid>
 
-      <Grid xs={12} md={8}>
+      <Grid item xs={12} md={8}>
         <Card>
           <CardContent>
             <Typography variant="h6" gutterBottom>
@@ -167,7 +167,7 @@ export default function MetricsDashboard({ recitations }: MetricsDashboardProps)
         </Card>
       </Grid>
 
-      <Grid xs={12} md={4}>
+      <Grid item xs={12} md={4}>
         <Card>
           <CardContent>
             <Typography variant="h6" gutterBottom>
@@ -196,7 +196,7 @@ export default function MetricsDashboard({ recitations }: MetricsDashboardProps)
         </Card>
       </Grid>
 
-      <Grid xs={12}>
+      <Grid item xs={12}>
         <Card>
           <CardContent>
             <Typography variant="h6" gutterBottom>
