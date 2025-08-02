@@ -5,7 +5,7 @@ import {
   Typography,
   TextField,
   Button,
-  Grid,
+  Grid2 as Grid,
   FormControl,
   InputLabel,
   Select,
@@ -73,7 +73,7 @@ export default function RecitationLogger({ onAddRecitation }: RecitationLoggerPr
         
         <form onSubmit={handleSubmit}>
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
+            <Grid xs={12} md={6}>
               <FormControl fullWidth>
                 <InputLabel>Mantra</InputLabel>
                 <Select
@@ -91,7 +91,7 @@ export default function RecitationLogger({ onAddRecitation }: RecitationLoggerPr
             </Grid>
             
             {mantraName === 'Custom' && (
-              <Grid item xs={12} md={6}>
+              <Grid xs={12} md={6}>
                 <TextField
                   fullWidth
                   label="Custom Mantra Name"
@@ -102,7 +102,7 @@ export default function RecitationLogger({ onAddRecitation }: RecitationLoggerPr
               </Grid>
             )}
             
-            <Grid item xs={12} md={6}>
+            <Grid xs={12} md={6}>
               <TextField
                 fullWidth
                 label="Count"
@@ -114,7 +114,7 @@ export default function RecitationLogger({ onAddRecitation }: RecitationLoggerPr
               />
             </Grid>
             
-            <Grid item xs={12} md={6}>
+            <Grid xs={12} md={6}>
               <TextField
                 fullWidth
                 label="Duration (minutes)"
@@ -126,7 +126,7 @@ export default function RecitationLogger({ onAddRecitation }: RecitationLoggerPr
               />
             </Grid>
             
-            <Grid item xs={12} md={6}>
+            <Grid xs={12} md={6}>
               <DateTimePicker
                 label="Date & Time"
                 value={timestamp}
@@ -140,7 +140,7 @@ export default function RecitationLogger({ onAddRecitation }: RecitationLoggerPr
               />
             </Grid>
             
-            <Grid item xs={12}>
+            <Grid xs={12}>
               <TextField
                 fullWidth
                 label="Notes (optional)"
@@ -151,7 +151,7 @@ export default function RecitationLogger({ onAddRecitation }: RecitationLoggerPr
               />
             </Grid>
             
-            <Grid item xs={12}>
+            <Grid xs={12}>
               <Button
                 type="submit"
                 variant="contained"

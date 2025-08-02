@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import {
-  Grid,
+  Grid2 as Grid,
   Card,
   CardContent,
   Typography,
@@ -15,8 +15,6 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  BarChart,
-  Bar,
   PieChart,
   Pie,
   Cell,
@@ -96,7 +94,7 @@ export default function MetricsDashboard({ recitations }: MetricsDashboardProps)
 
   return (
     <Grid container spacing={3}>
-      <Grid item xs={12} md={3}>
+      <Grid xs={12} md={3}>
         <Card>
           <CardContent>
             <Typography color="textSecondary" gutterBottom>
@@ -109,7 +107,7 @@ export default function MetricsDashboard({ recitations }: MetricsDashboardProps)
         </Card>
       </Grid>
       
-      <Grid item xs={12} md={3}>
+      <Grid xs={12} md={3}>
         <Card>
           <CardContent>
             <Typography color="textSecondary" gutterBottom>
@@ -122,7 +120,7 @@ export default function MetricsDashboard({ recitations }: MetricsDashboardProps)
         </Card>
       </Grid>
       
-      <Grid item xs={12} md={3}>
+      <Grid xs={12} md={3}>
         <Card>
           <CardContent>
             <Typography color="textSecondary" gutterBottom>
@@ -135,7 +133,7 @@ export default function MetricsDashboard({ recitations }: MetricsDashboardProps)
         </Card>
       </Grid>
       
-      <Grid item xs={12} md={3}>
+      <Grid xs={12} md={3}>
         <Card>
           <CardContent>
             <Typography color="textSecondary" gutterBottom>
@@ -148,7 +146,7 @@ export default function MetricsDashboard({ recitations }: MetricsDashboardProps)
         </Card>
       </Grid>
 
-      <Grid item xs={12} md={8}>
+      <Grid xs={12} md={8}>
         <Card>
           <CardContent>
             <Typography variant="h6" gutterBottom>
@@ -169,7 +167,7 @@ export default function MetricsDashboard({ recitations }: MetricsDashboardProps)
         </Card>
       </Grid>
 
-      <Grid item xs={12} md={4}>
+      <Grid xs={12} md={4}>
         <Card>
           <CardContent>
             <Typography variant="h6" gutterBottom>
@@ -198,7 +196,7 @@ export default function MetricsDashboard({ recitations }: MetricsDashboardProps)
         </Card>
       </Grid>
 
-      <Grid item xs={12}>
+      <Grid xs={12}>
         <Card>
           <CardContent>
             <Typography variant="h6" gutterBottom>
