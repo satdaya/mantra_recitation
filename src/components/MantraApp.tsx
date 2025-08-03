@@ -10,6 +10,7 @@ import {
 } from '@mui/material';
 import RecitationLogger from './RecitationLogger';
 import MetricsDashboard from './MetricsDashboard';
+import MantraManagement from './MantraManagement';
 import { MantraRecitation } from '../types';
 
 interface TabPanelProps {
@@ -74,6 +75,7 @@ export default function MantraApp() {
           <Tabs value={tabValue} onChange={handleTabChange}>
             <Tab label="Log Recitation" />
             <Tab label="Metrics & Analytics" />
+            <Tab label="Manage Mantras" />
           </Tabs>
         </Box>
         
@@ -83,6 +85,10 @@ export default function MantraApp() {
         
         <TabPanel value={tabValue} index={1}>
           <MetricsDashboard recitations={recitations} />
+        </TabPanel>
+        
+        <TabPanel value={tabValue} index={2}>
+          <MantraManagement />
         </TabPanel>
       </Container>
     </>

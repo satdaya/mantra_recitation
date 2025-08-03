@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -14,23 +14,16 @@ import {
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import dayjs, { Dayjs } from 'dayjs';
 import { MantraRecitation } from '../types';
+import { mantraService, Mantra } from '../services/mantraService';
 
 interface RecitationLoggerProps {
   onAddRecitation: (recitation: Omit<MantraRecitation, 'id'>) => void;
 }
 
-const commonMantras = [
-  'Om Mani Padme Hum',
-  'Gayatri Mantra',
-  'Om Namah Shivaya',
-  'Hare Krishna',
-  'Om Gam Ganapataye Namaha',
-  'So Hum',
-  'Om Shanti Shanti Shanti',
-  'Custom'
-];
+// Mantras are now loaded dynamically from the mantra service
 
 export default function RecitationLogger({ onAddRecitation }: RecitationLoggerProps) {
+  const [mantras, setMantras] = useState<Mantra[]>([]);
   const [mantraName, setMantraName] = useState('');
   const [customMantra, setCustomMantra] = useState('');
   const [count, setCount] = useState<number>(108);
@@ -38,10 +31,27 @@ export default function RecitationLogger({ onAddRecitation }: RecitationLoggerPr
   const [timestamp, setTimestamp] = useState<Dayjs>(dayjs());
   const [notes, setNotes] = useState('');
 
+  useEffect(() => {
+    loadMantras();
+  }, []);
+
+  const loadMantras = async () => {
+    const allMantras = await mantraService.getAllMantras();
+    setMantras(allMantras);
+    
+    // Auto-fill count based on selected mantra's traditional count
+    if (mantraName && mantraName !== 'custom') {
+      const selectedMantra = allMantras.find(m => m.name === mantraName);
+      if (selectedMantra?.traditionalCount) {
+        setCount(selectedMantra.traditionalCount);
+      }
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const finalMantraName = mantraName === 'Custom' ? customMantra : mantraName;
+    const finalMantraName = mantraName === 'custom' ? customMantra : mantraName;
     
     if (!finalMantraName || count <= 0 || duration <= 0) {
       return;
@@ -59,9 +69,12 @@ export default function RecitationLogger({ onAddRecitation }: RecitationLoggerPr
     setDuration(15);
     setTimestamp(dayjs());
     setNotes('');
-    if (mantraName === 'Custom') {
+    if (mantraName === 'custom') {
       setCustomMantra('');
     }
+    
+    // Reload mantras in case new ones were added
+    loadMantras();
   };
 
   return (
@@ -81,16 +94,17 @@ export default function RecitationLogger({ onAddRecitation }: RecitationLoggerPr
                   onChange={(e) => setMantraName(e.target.value)}
                   required
                 >
-                  {commonMantras.map((mantra) => (
-                    <MenuItem key={mantra} value={mantra}>
-                      {mantra}
+                  {mantras.map((mantra) => (
+                    <MenuItem key={mantra.id} value={mantra.name}>
+                      {mantra.name}
+                      {mantra.source === 'user' && ' (Personal)'}
                     </MenuItem>
                   ))}
                 </Select>
               </FormControl>
             </Grid>
             
-            {mantraName === 'Custom' && (
+            {mantraName === 'custom' && (
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
