@@ -6,6 +6,7 @@ export interface Mantra {
   id: string;
   name: string;
   sanskrit?: string;
+  gurmukhi?: string; // Added Gurmukhi script support
   translation?: string;
   category?: string;
   traditionalCount?: number;
@@ -61,9 +62,10 @@ class MantraService {
         id: record.id,
         name: record.fields.Name,
         sanskrit: record.fields.Sanskrit,
+        gurmukhi: record.fields.Gurmukhi,
         translation: record.fields.Translation,
         category: record.fields.Category,
-        traditionalCount: record.fields['Traditional Count'] || 108,
+        traditionalCount: record.fields['Traditional Count'] || this.getDefaultCount(record.fields.Category),
         audioUrl: record.fields['Audio URL'],
         source: 'core' as const,
       }));
@@ -125,6 +127,7 @@ class MantraService {
             fields: {
               Name: mantra.name,
               Sanskrit: mantra.sanskrit,
+              Gurmukhi: mantra.gurmukhi,
               Translation: mantra.translation,
               Category: mantra.category,
               'Traditional Count': mantra.traditionalCount,
@@ -176,6 +179,30 @@ class MantraService {
   // No default mantras - everything starts empty
   private getDefaultCoreMantras(): Mantra[] {
     return [];
+  }
+
+  // Get default count based on category (Sikh practices)
+  private getDefaultCount(category?: string): number {
+    if (!category) return 108;
+    
+    const sikthCounts: Record<string, number> = {
+      'Daily Banis': 1, // Japji, Sukhmani, Rehras, Kirtan Sohila, Ardas all under this
+      'Core Mantras': 125000, // Traditional for Waheguru simran
+      'Paurees': 11, // Common practice for paurees
+      'Simran': 125000, // Traditional count for simran
+      // Universal defaults
+      'Devotion': 108,
+      'Wisdom': 108,
+      'Compassion': 108,
+      'Peace': 108,
+      'Healing': 108,
+      'Protection': 108,
+      'Prosperity': 108,
+      'Self-realization': 108,
+      'Other': 108,
+    };
+    
+    return sikthCounts[category] || 108;
   }
 
   // Clear cache (for testing or manual refresh)

@@ -35,6 +35,12 @@ interface MantraManagementProps {
 }
 
 const categories = [
+  // Sikh Categories
+  'Daily Banis',
+  'Core Mantras',
+  'Paurees',
+  'Simran',
+  // Universal Categories
   'Devotion',
   'Wisdom',
   'Compassion',
@@ -43,9 +49,30 @@ const categories = [
   'Protection',
   'Prosperity',
   'Self-realization',
-  'Obstacles',
   'Other',
 ];
+
+// Helper function to get default count based on category
+const getDefaultCountForCategory = (category: string): number => {
+  const sikthCounts: Record<string, number> = {
+    'Daily Banis': 1, // Japji, Sukhmani, Rehras, Kirtan Sohila, Ardas all under this
+    'Core Mantras': 125000,
+    'Paurees': 11,
+    'Simran': 125000,
+    // Universal defaults
+    'Devotion': 108,
+    'Wisdom': 108,
+    'Compassion': 108,
+    'Peace': 108,
+    'Healing': 108,
+    'Protection': 108,
+    'Prosperity': 108,
+    'Self-realization': 108,
+    'Other': 108,
+  };
+  
+  return sikthCounts[category] || 108;
+};
 
 export default function MantraManagement({ onMantraAdded }: MantraManagementProps) {
   const [mantras, setMantras] = useState<Mantra[]>([]);
@@ -53,6 +80,7 @@ export default function MantraManagement({ onMantraAdded }: MantraManagementProp
   const [formData, setFormData] = useState({
     name: '',
     sanskrit: '',
+    gurmukhi: '',
     translation: '',
     category: '',
     traditionalCount: 108,
@@ -79,6 +107,7 @@ export default function MantraManagement({ onMantraAdded }: MantraManagementProp
       const newMantra = mantraService.addUserMantra({
         name: formData.name,
         sanskrit: formData.sanskrit || undefined,
+        gurmukhi: formData.gurmukhi || undefined,
         translation: formData.translation || undefined,
         category: formData.category || undefined,
         traditionalCount: formData.traditionalCount,
@@ -94,6 +123,7 @@ export default function MantraManagement({ onMantraAdded }: MantraManagementProp
       setFormData({
         name: '',
         sanskrit: '',
+        gurmukhi: '',
         translation: '',
         category: '',
         traditionalCount: 108,
@@ -252,7 +282,7 @@ export default function MantraManagement({ onMantraAdded }: MantraManagementProp
                   />
                 </Grid>
                 
-                <Grid item xs={12}>
+                <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
                     label="Sanskrit Text (optional)"
@@ -260,6 +290,18 @@ export default function MantraManagement({ onMantraAdded }: MantraManagementProp
                     onChange={(e) => setFormData({ ...formData, sanskrit: e.target.value })}
                     multiline
                     rows={2}
+                  />
+                </Grid>
+                
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Gurmukhi Text (optional)"
+                    value={formData.gurmukhi}
+                    onChange={(e) => setFormData({ ...formData, gurmukhi: e.target.value })}
+                    multiline
+                    rows={2}
+                    helperText="ਗੁਰਮੁਖੀ ਲਿਖਤ"
                   />
                 </Grid>
                 
@@ -279,7 +321,15 @@ export default function MantraManagement({ onMantraAdded }: MantraManagementProp
                     <InputLabel>Category</InputLabel>
                     <Select
                       value={formData.category}
-                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                      onChange={(e) => {
+                        const newCategory = e.target.value;
+                        const defaultCount = getDefaultCountForCategory(newCategory);
+                        setFormData({ 
+                          ...formData, 
+                          category: newCategory,
+                          traditionalCount: defaultCount
+                        });
+                      }}
                     >
                       {categories.map((cat) => (
                         <MenuItem key={cat} value={cat}>
