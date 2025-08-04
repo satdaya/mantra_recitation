@@ -5,7 +5,6 @@ import {
   Typography,
   TextField,
   Button,
-  Grid,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -177,9 +176,9 @@ export default function MantraManagement({ onMantraAdded }: MantraManagementProp
           </Alert>
         )}
 
-        <Grid container spacing={3}>
+        <Box display="flex" flexWrap="wrap" gap={3}>
           {/* Core Mantras */}
-          <Grid item xs={12} md={6}>
+          <Box flex="1" minWidth="300px">
             <Typography variant="h6" gutterBottom>
               Core Mantras ({coreMantras.length})
             </Typography>
@@ -208,10 +207,10 @@ export default function MantraManagement({ onMantraAdded }: MantraManagementProp
                 </ListItem>
               ))}
             </List>
-          </Grid>
+          </Box>
 
           {/* User Mantras */}
-          <Grid item xs={12} md={6}>
+          <Box flex="1" minWidth="300px">
             <Typography variant="h6" gutterBottom>
               Your Mantras ({userMantras.length})
             </Typography>
@@ -263,26 +262,24 @@ export default function MantraManagement({ onMantraAdded }: MantraManagementProp
                 </ListItem>
               )}
             </List>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
 
         {/* Add Mantra Dialog */}
         <Dialog open={open} onClose={() => setOpen(false)} maxWidth="md" fullWidth>
           <form onSubmit={handleSubmit}>
             <DialogTitle>Add New Mantra</DialogTitle>
             <DialogContent>
-              <Grid container spacing={2} sx={{ mt: 1 }}>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Mantra Name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    required
-                  />
-                </Grid>
+              <Box display="flex" flexDirection="column" gap={2} sx={{ mt: 1 }}>
+                <TextField
+                  fullWidth
+                  label="Mantra Name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  required
+                />
                 
-                <Grid item xs={12} md={6}>
+                <Box display="flex" gap={2}>
                   <TextField
                     fullWidth
                     label="Sanskrit Text (optional)"
@@ -291,9 +288,7 @@ export default function MantraManagement({ onMantraAdded }: MantraManagementProp
                     multiline
                     rows={2}
                   />
-                </Grid>
-                
-                <Grid item xs={12} md={6}>
+                  
                   <TextField
                     fullWidth
                     label="Gurmukhi Text (optional)"
@@ -303,20 +298,18 @@ export default function MantraManagement({ onMantraAdded }: MantraManagementProp
                     rows={2}
                     helperText="ਗੁਰਮੁਖੀ ਲਿਖਤ"
                   />
-                </Grid>
+                </Box>
                 
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Translation/Meaning (optional)"
-                    value={formData.translation}
-                    onChange={(e) => setFormData({ ...formData, translation: e.target.value })}
-                    multiline
-                    rows={2}
-                  />
-                </Grid>
+                <TextField
+                  fullWidth
+                  label="Translation/Meaning (optional)"
+                  value={formData.translation}
+                  onChange={(e) => setFormData({ ...formData, translation: e.target.value })}
+                  multiline
+                  rows={2}
+                />
                 
-                <Grid item xs={12} md={6}>
+                <Box display="flex" gap={2}>
                   <FormControl fullWidth>
                     <InputLabel>Category</InputLabel>
                     <Select
@@ -338,9 +331,7 @@ export default function MantraManagement({ onMantraAdded }: MantraManagementProp
                       ))}
                     </Select>
                   </FormControl>
-                </Grid>
-                
-                <Grid item xs={12} md={6}>
+                  
                   <TextField
                     fullWidth
                     label="Traditional Count"
@@ -349,18 +340,16 @@ export default function MantraManagement({ onMantraAdded }: MantraManagementProp
                     onChange={(e) => setFormData({ ...formData, traditionalCount: Number(e.target.value) })}
                     inputProps={{ min: 1 }}
                   />
-                </Grid>
+                </Box>
                 
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Your Name (optional)"
-                    value={formData.submittedBy}
-                    onChange={(e) => setFormData({ ...formData, submittedBy: e.target.value })}
-                    helperText="If provided, this mantra may be submitted for inclusion in the core library"
-                  />
-                </Grid>
-              </Grid>
+                <TextField
+                  fullWidth
+                  label="Your Name (optional)"
+                  value={formData.submittedBy}
+                  onChange={(e) => setFormData({ ...formData, submittedBy: e.target.value })}
+                  helperText="If provided, this mantra may be submitted for inclusion in the core library"
+                />
+              </Box>
             </DialogContent>
             <DialogActions>
               <Button onClick={() => setOpen(false)}>Cancel</Button>
