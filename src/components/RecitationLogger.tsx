@@ -5,7 +5,7 @@ import {
   Typography,
   TextField,
   Button,
-  Grid,
+  Box,
   FormControl,
   InputLabel,
   Select,
@@ -85,97 +85,97 @@ export default function RecitationLogger({ onAddRecitation }: RecitationLoggerPr
         </Typography>
         
         <form onSubmit={handleSubmit}>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth>
-                <InputLabel>Mantra</InputLabel>
-                <Select
-                  value={mantraName}
-                  onChange={(e) => setMantraName(e.target.value)}
-                  required
-                >
-                  {mantras.map((mantra) => (
-                    <MenuItem key={mantra.id} value={mantra.name}>
-                      {mantra.name}
-                      {mantra.source === 'user' && ' (Personal)'}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
+          <Box display="flex" flexDirection="column" gap={3}>
+            <Box display="flex" flexWrap="wrap" gap={2}>
+              <Box flex="1" minWidth="200px">
+                <FormControl fullWidth>
+                  <InputLabel>Mantra</InputLabel>
+                  <Select
+                    value={mantraName}
+                    onChange={(e) => setMantraName(e.target.value)}
+                    required
+                  >
+                    {mantras.map((mantra) => (
+                      <MenuItem key={mantra.id} value={mantra.name}>
+                        {mantra.name}
+                        {mantra.source === 'user' && ' (Personal)'}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
+              
+              {mantraName === 'custom' && (
+                <Box flex="1" minWidth="200px">
+                  <TextField
+                    fullWidth
+                    label="Custom Mantra Name"
+                    value={customMantra}
+                    onChange={(e) => setCustomMantra(e.target.value)}
+                    required
+                  />
+                </Box>
+              )}
+            </Box>
             
-            {mantraName === 'custom' && (
-              <Grid item xs={12} md={6}>
+            <Box display="flex" flexWrap="wrap" gap={2}>
+              <Box flex="1" minWidth="150px">
                 <TextField
                   fullWidth
-                  label="Custom Mantra Name"
-                  value={customMantra}
-                  onChange={(e) => setCustomMantra(e.target.value)}
+                  label="Count"
+                  type="number"
+                  value={count}
+                  onChange={(e) => setCount(Number(e.target.value))}
+                  inputProps={{ min: 1 }}
                   required
                 />
-              </Grid>
-            )}
+              </Box>
+              
+              <Box flex="1" minWidth="150px">
+                <TextField
+                  fullWidth
+                  label="Duration (minutes)"
+                  type="number"
+                  value={duration}
+                  onChange={(e) => setDuration(Number(e.target.value))}
+                  inputProps={{ min: 1 }}
+                  required
+                />
+              </Box>
+              
+              <Box flex="1" minWidth="250px">
+                <DateTimePicker
+                  label="Date & Time"
+                  value={timestamp}
+                  onChange={(newValue) => newValue && setTimestamp(newValue)}
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      required: true,
+                    },
+                  }}
+                />
+              </Box>
+            </Box>
             
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Count"
-                type="number"
-                value={count}
-                onChange={(e) => setCount(Number(e.target.value))}
-                inputProps={{ min: 1 }}
-                required
-              />
-            </Grid>
+            <TextField
+              fullWidth
+              label="Notes (optional)"
+              multiline
+              rows={3}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+            />
             
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Duration (minutes)"
-                type="number"
-                value={duration}
-                onChange={(e) => setDuration(Number(e.target.value))}
-                inputProps={{ min: 1 }}
-                required
-              />
-            </Grid>
-            
-            <Grid item xs={12} md={6}>
-              <DateTimePicker
-                label="Date & Time"
-                value={timestamp}
-                onChange={(newValue) => newValue && setTimestamp(newValue)}
-                slotProps={{
-                  textField: {
-                    fullWidth: true,
-                    required: true,
-                  },
-                }}
-              />
-            </Grid>
-            
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Notes (optional)"
-                multiline
-                rows={3}
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-              />
-            </Grid>
-            
-            <Grid item xs={12}>
-              <Button
-                type="submit"
-                variant="contained"
-                size="large"
-                fullWidth
-              >
-                Log Recitation
-              </Button>
-            </Grid>
-          </Grid>
+            <Button
+              type="submit"
+              variant="contained"
+              size="large"
+              fullWidth
+            >
+              Log Recitation
+            </Button>
+          </Box>
         </form>
       </CardContent>
     </Card>

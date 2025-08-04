@@ -26,6 +26,7 @@ import {
   Add as AddIcon,
   Delete as DeleteIcon,
   CloudUpload as SubmitIcon,
+  Edit as EditIcon,
 } from '@mui/icons-material';
 import { mantraService, Mantra } from '../services/mantraService';
 
@@ -76,6 +77,7 @@ const getDefaultCountForCategory = (category: string): number => {
 export default function MantraManagement({ onMantraAdded }: MantraManagementProps) {
   const [mantras, setMantras] = useState<Mantra[]>([]);
   const [open, setOpen] = useState(false);
+  const [editingMantra, setEditingMantra] = useState<Mantra | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     sanskrit: '',
@@ -102,21 +104,44 @@ export default function MantraManagement({ onMantraAdded }: MantraManagementProp
     if (!formData.name.trim()) return;
 
     try {
-      // Add to user mantras
-      const newMantra = mantraService.addUserMantra({
-        name: formData.name,
-        sanskrit: formData.sanskrit || undefined,
-        gurmukhi: formData.gurmukhi || undefined,
-        translation: formData.translation || undefined,
-        category: formData.category || undefined,
-        traditionalCount: formData.traditionalCount,
-        submittedBy: formData.submittedBy || undefined,
-      });
+      if (editingMantra) {
+        // Update existing mantra
+        const updatedMantra: Mantra = {
+          ...editingMantra,
+          name: formData.name,
+          sanskrit: formData.sanskrit || undefined,
+          gurmukhi: formData.gurmukhi || undefined,
+          translation: formData.translation || undefined,
+          category: formData.category || undefined,
+          traditionalCount: formData.traditionalCount,
+          submittedBy: formData.submittedBy || undefined,
+        };
+        
+        // Update in local storage
+        const userMantras = mantraService.getUserMantras();
+        const updatedMantras = userMantras.map(m => 
+          m.id === editingMantra.id ? updatedMantra : m
+        );
+        localStorage.setItem('userMantras', JSON.stringify(updatedMantras));
+        
+        setSubmitStatus('success');
+      } else {
+        // Add new mantra
+        const newMantra = mantraService.addUserMantra({
+          name: formData.name,
+          sanskrit: formData.sanskrit || undefined,
+          gurmukhi: formData.gurmukhi || undefined,
+          translation: formData.translation || undefined,
+          category: formData.category || undefined,
+          traditionalCount: formData.traditionalCount,
+          submittedBy: formData.submittedBy || undefined,
+        });
 
-      // Optionally submit to Airtable for review
-      setSubmitStatus('submitting');
-      const submitted = await mantraService.submitForReview(newMantra);
-      setSubmitStatus(submitted ? 'success' : 'idle');
+        // Optionally submit to Airtable for review
+        setSubmitStatus('submitting');
+        const submitted = await mantraService.submitForReview(newMantra);
+        setSubmitStatus(submitted ? 'success' : 'idle');
+      }
 
       // Reset form and reload
       setFormData({
@@ -128,16 +153,31 @@ export default function MantraManagement({ onMantraAdded }: MantraManagementProp
         traditionalCount: 108,
         submittedBy: '',
       });
+      setEditingMantra(null);
       setOpen(false);
       await loadMantras();
       onMantraAdded?.();
 
       setTimeout(() => setSubmitStatus('idle'), 3000);
     } catch (error) {
-      console.error('Error adding mantra:', error);
+      console.error('Error saving mantra:', error);
       setSubmitStatus('error');
       setTimeout(() => setSubmitStatus('idle'), 3000);
     }
+  };
+
+  const handleEdit = (mantra: Mantra) => {
+    setEditingMantra(mantra);
+    setFormData({
+      name: mantra.name,
+      sanskrit: mantra.sanskrit || '',
+      gurmukhi: mantra.gurmukhi || '',
+      translation: mantra.translation || '',
+      category: mantra.category || '',
+      traditionalCount: mantra.traditionalCount || 108,
+      submittedBy: mantra.submittedBy || '',
+    });
+    setOpen(true);
   };
 
   const handleDelete = async (id: string) => {
@@ -145,6 +185,20 @@ export default function MantraManagement({ onMantraAdded }: MantraManagementProp
       await loadMantras();
       onMantraAdded?.();
     }
+  };
+
+  const handleAddNew = () => {
+    setEditingMantra(null);
+    setFormData({
+      name: '',
+      sanskrit: '',
+      gurmukhi: '',
+      translation: '',
+      category: '',
+      traditionalCount: 108,
+      submittedBy: '',
+    });
+    setOpen(true);
   };
 
   const userMantras = mantras.filter(m => m.source === 'user');
@@ -158,7 +212,7 @@ export default function MantraManagement({ onMantraAdded }: MantraManagementProp
           <Button
             variant="contained"
             startIcon={<AddIcon />}
-            onClick={() => setOpen(true)}
+            onClick={handleAddNew}
           >
             Add Mantra
           </Button>
@@ -244,6 +298,13 @@ export default function MantraManagement({ onMantraAdded }: MantraManagementProp
                   />
                   <ListItemSecondaryAction>
                     <IconButton
+                      onClick={() => handleEdit(mantra)}
+                      size="small"
+                      sx={{ mr: 1 }}
+                    >
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton
                       edge="end"
                       onClick={() => handleDelete(mantra.id)}
                       size="small"
@@ -268,7 +329,9 @@ export default function MantraManagement({ onMantraAdded }: MantraManagementProp
         {/* Add Mantra Dialog */}
         <Dialog open={open} onClose={() => setOpen(false)} maxWidth="md" fullWidth>
           <form onSubmit={handleSubmit}>
-            <DialogTitle>Add New Mantra</DialogTitle>
+            <DialogTitle>
+              {editingMantra ? 'Edit Mantra' : 'Add New Mantra'}
+            </DialogTitle>
             <DialogContent>
               <Box display="flex" flexDirection="column" gap={2} sx={{ mt: 1 }}>
                 <TextField
@@ -357,9 +420,12 @@ export default function MantraManagement({ onMantraAdded }: MantraManagementProp
                 type="submit" 
                 variant="contained"
                 disabled={submitStatus === 'submitting'}
-                startIcon={submitStatus === 'submitting' ? <SubmitIcon /> : <AddIcon />}
+                startIcon={submitStatus === 'submitting' ? <SubmitIcon /> : (editingMantra ? <EditIcon /> : <AddIcon />)}
               >
-                {submitStatus === 'submitting' ? 'Adding...' : 'Add Mantra'}
+                {submitStatus === 'submitting' 
+                  ? (editingMantra ? 'Updating...' : 'Adding...') 
+                  : (editingMantra ? 'Update Mantra' : 'Add Mantra')
+                }
               </Button>
             </DialogActions>
           </form>

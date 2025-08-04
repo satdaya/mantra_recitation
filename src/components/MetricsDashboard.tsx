@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
 import {
-  Grid,
   Card,
   CardContent,
   Typography,
@@ -93,60 +92,65 @@ export default function MetricsDashboard({ recitations }: MetricsDashboardProps)
   }, [recitations]);
 
   return (
-    <Grid container spacing={3}>
-      <Grid item xs={12} md={3}>
-        <Card>
-          <CardContent>
-            <Typography color="textSecondary" gutterBottom>
-              Total Recitations
-            </Typography>
-            <Typography variant="h4">
-              {stats.totalRecitations}
-            </Typography>
-          </CardContent>
-        </Card>
-      </Grid>
-      
-      <Grid item xs={12} md={3}>
-        <Card>
-          <CardContent>
-            <Typography color="textSecondary" gutterBottom>
-              Total Count
-            </Typography>
-            <Typography variant="h4">
-              {stats.totalCount.toLocaleString()}
-            </Typography>
-          </CardContent>
-        </Card>
-      </Grid>
-      
-      <Grid item xs={12} md={3}>
-        <Card>
-          <CardContent>
-            <Typography color="textSecondary" gutterBottom>
-              Total Duration
-            </Typography>
-            <Typography variant="h4">
-              {Math.round(stats.totalDuration / 60)}h {stats.totalDuration % 60}m
-            </Typography>
-          </CardContent>
-        </Card>
-      </Grid>
-      
-      <Grid item xs={12} md={3}>
-        <Card>
-          <CardContent>
-            <Typography color="textSecondary" gutterBottom>
-              Most Recited
-            </Typography>
-            <Typography variant="h6" sx={{ fontSize: '1rem' }}>
-              {stats.mostRecitedMantra || 'N/A'}
-            </Typography>
-          </CardContent>
-        </Card>
-      </Grid>
+    <Box>
+      {/* Stats Cards */}
+      <Box display="flex" flexWrap="wrap" gap={2} mb={3}>
+        <Box flex="1" minWidth="200px">
+          <Card>
+            <CardContent>
+              <Typography color="textSecondary" gutterBottom>
+                Total Recitations
+              </Typography>
+              <Typography variant="h4">
+                {stats.totalRecitations}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Box>
+        
+        <Box flex="1" minWidth="200px">
+          <Card>
+            <CardContent>
+              <Typography color="textSecondary" gutterBottom>
+                Total Count
+              </Typography>
+              <Typography variant="h4">
+                {stats.totalCount.toLocaleString()}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Box>
+        
+        <Box flex="1" minWidth="200px">
+          <Card>
+            <CardContent>
+              <Typography color="textSecondary" gutterBottom>
+                Total Duration
+              </Typography>
+              <Typography variant="h4">
+                {Math.round(stats.totalDuration / 60)}h {stats.totalDuration % 60}m
+              </Typography>
+            </CardContent>
+          </Card>
+        </Box>
+        
+        <Box flex="1" minWidth="200px">
+          <Card>
+            <CardContent>
+              <Typography color="textSecondary" gutterBottom>
+                Most Recited
+              </Typography>
+              <Typography variant="h6" sx={{ fontSize: '1rem' }}>
+                {stats.mostRecitedMantra || 'N/A'}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Box>
+      </Box>
 
-      <Grid item xs={12} md={8}>
+      {/* Charts Section */}
+      <Box display="flex" flexWrap="wrap" gap={3} mb={3}>
+        <Box flex="2" minWidth="400px">
         <Card>
           <CardContent>
             <Typography variant="h6" gutterBottom>
@@ -165,38 +169,40 @@ export default function MetricsDashboard({ recitations }: MetricsDashboardProps)
             </ResponsiveContainer>
           </CardContent>
         </Card>
-      </Grid>
+        </Box>
 
-      <Grid item xs={12} md={4}>
-        <Card>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              Mantra Distribution
-            </Typography>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={mantraDistribution}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="count"
-                  label={({ name, percent }) => `${name}: ${((percent || 0) * 100).toFixed(0)}%`}
-                >
-                  {mantraDistribution.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </Grid>
+        <Box flex="1" minWidth="300px">
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Mantra Distribution
+              </Typography>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={mantraDistribution}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="count"
+                    label={({ name, percent }) => `${name}: ${((percent || 0) * 100).toFixed(0)}%`}
+                  >
+                    {mantraDistribution.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </Box>
+      </Box>
 
-      <Grid item xs={12}>
+      {/* Recent Recitations */}
+      <Box>
         <Card>
           <CardContent>
             <Typography variant="h6" gutterBottom>
@@ -233,7 +239,7 @@ export default function MetricsDashboard({ recitations }: MetricsDashboardProps)
             </Box>
           </CardContent>
         </Card>
-      </Grid>
-    </Grid>
+      </Box>
+    </Box>
   );
 }

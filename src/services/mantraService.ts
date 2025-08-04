@@ -84,7 +84,7 @@ class MantraService {
   }
 
   // Get user-submitted mantras from local storage
-  private getUserMantras(): Mantra[] {
+  getUserMantras(): Mantra[] {
     try {
       const stored = localStorage.getItem(this.userMantrasKey);
       return stored ? JSON.parse(stored) : [];
