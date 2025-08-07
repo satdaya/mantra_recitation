@@ -12,6 +12,7 @@ import RecitationLogger from './RecitationLogger';
 import MetricsDashboard from './MetricsDashboard';
 import MantraManagement from './MantraManagement';
 import { MantraRecitation } from '../types';
+// import logo from '../assets/your-image.png'; // Uncomment and update path
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -67,6 +68,18 @@ export default function MantraApp() {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             Mantra Recitation Tracker
           </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            {/* Add your image here */}
+            <img 
+              src="/Nishan_Sahib.svg.png" // Replace with your image path
+              alt="Logo" 
+              style={{ 
+                height: '40px', 
+                width: 'auto',
+                marginLeft: '16px' 
+              }} 
+            />
+          </Box>
         </Toolbar>
       </AppBar>
       
