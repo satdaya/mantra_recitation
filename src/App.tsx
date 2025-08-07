@@ -7,11 +7,20 @@ import MantraApp from './components/MantraApp';
 
 const theme = createTheme({
   palette: {
+    mode: 'dark',
     primary: {
-      main: '#6b46c1',
+      main: '#FFBF00', // Golden yellow
     },
     secondary: {
-      main: '#ec4899',
+      main: '#FFBF00', // Golden yellow
+    },
+    background: {
+      default: '#0A2856', // Dark blue background
+      paper: '#0A2856', // Dark blue for cards/papers
+    },
+    text: {
+      primary: '#FFBF00', // Golden yellow text
+      secondary: '#FFBF00', // Golden yellow secondary text
     },
   },
 });
