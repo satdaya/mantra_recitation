@@ -1,4 +1,6 @@
-// Hybrid Mantra Service: Airtable + User Submissions
+// Hybrid Mantra Service: FastAPI Backend + Airtable + User Submissions
+import { api } from '../lib/api';
+
 const AIRTABLE_BASE_ID = process.env.REACT_APP_AIRTABLE_BASE_ID;
 const AIRTABLE_API_KEY = process.env.REACT_APP_AIRTABLE_API_KEY;
 
@@ -21,18 +23,38 @@ class MantraService {
   private userMantrasKey = 'userMantras';
   private cacheExpiry = 24 * 60 * 60 * 1000; // 24 hours
 
-  // Get all mantras (core + user submissions)
+  // Get all mantras (backend + core + user submissions)
   async getAllMantras(): Promise<Mantra[]> {
-    const [coreMantras, userMantras] = await Promise.all([
+    const [backendMantras, coreMantras, userMantras] = await Promise.all([
+      this.getBackendMantras(),
       this.getCoreMantras(),
       this.getUserMantras(),
     ]);
 
     return [
+      ...backendMantras,
       ...coreMantras,
       ...userMantras,
       { id: 'custom', name: 'Custom', source: 'core' as const }, // Always keep custom option
     ];
+  }
+
+  // Get mantras from FastAPI backend
+  private async getBackendMantras(): Promise<Mantra[]> {
+    try {
+      const response = await api.getMantras();
+      return response.data.map(mantra => ({
+        id: mantra.id,
+        name: mantra.name,
+        gurmukhi: mantra.text, // Map backend 'text' to 'gurmukhi'
+        category: mantra.category,
+        source: 'core' as const,
+        traditionalCount: this.getDefaultCount(mantra.category),
+      }));
+    } catch (error) {
+      console.error('Error fetching backend mantras:', error);
+      return [];
+    }
   }
 
   // Get core mantras from Airtable (with caching)
@@ -203,6 +225,50 @@ class MantraService {
     };
     
     return sikthCounts[category] || 108;
+  }
+
+  // Save recitation to backend
+  async saveRecitation(recitationData: {
+    mantraId: string;
+    count: number;
+    duration: number;
+    notes?: string;
+  }): Promise<boolean> {
+    try {
+      await api.createRecitation({
+        mantra_id: recitationData.mantraId,
+        user_id: 'default-user', // You can enhance this with real user management
+        count: recitationData.count,
+        duration_minutes: recitationData.duration,
+        notes: recitationData.notes,
+      });
+      return true;
+    } catch (error) {
+      console.error('Error saving recitation to backend:', error);
+      return false;
+    }
+  }
+
+  // Get recitations from backend
+  async getRecitations() {
+    try {
+      const response = await api.getRecitations();
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching recitations:', error);
+      return [];
+    }
+  }
+
+  // Test backend connection
+  async testConnection(): Promise<boolean> {
+    try {
+      await api.healthCheck();
+      return true;
+    } catch (error) {
+      console.error('Backend connection failed:', error);
+      return false;
+    }
   }
 
   // Clear cache (for testing or manual refresh)

@@ -7,11 +7,14 @@ import {
   Tabs,
   Tab,
   Box,
+  Chip,
 } from '@mui/material';
 import RecitationLogger from './RecitationLogger';
 import MetricsDashboard from './MetricsDashboard';
 import MantraManagement from './MantraManagement';
+import ApiTest from './ApiTest';
 import { MantraRecitation } from '../types';
+import { mantraService } from '../services/mantraService';
 // import logo from '../assets/your-image.png'; // Uncomment and update path
 
 interface TabPanelProps {
@@ -39,12 +42,22 @@ function TabPanel(props: TabPanelProps) {
 export default function MantraApp() {
   const [tabValue, setTabValue] = useState(0);
   const [recitations, setRecitations] = useState<MantraRecitation[]>([]);
+  const [backendStatus, setBackendStatus] = useState<'connecting' | 'connected' | 'disconnected'>('connecting');
 
   useEffect(() => {
     const savedRecitations = localStorage.getItem('mantraRecitations');
     if (savedRecitations) {
       setRecitations(JSON.parse(savedRecitations));
     }
+
+    // Test backend connection
+    mantraService.testConnection()
+      .then(isConnected => {
+        setBackendStatus(isConnected ? 'connected' : 'disconnected');
+      })
+      .catch(() => {
+        setBackendStatus('disconnected');
+      });
   }, []);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -68,7 +81,13 @@ export default function MantraApp() {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             Mantra Recitation Tracker
           </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            {/* Backend Connection Status */}
+            <Chip 
+              label={backendStatus === 'connecting' ? 'Connecting...' : backendStatus === 'connected' ? 'Backend Connected' : 'Backend Offline'}
+              color={backendStatus === 'connected' ? 'success' : backendStatus === 'connecting' ? 'default' : 'error'}
+              size="small"
+            />
             {/* Add your image here */}
             <img 
               src="/Nishan_Sahib.svg.png" // Replace with your image path
@@ -76,7 +95,6 @@ export default function MantraApp() {
               style={{ 
                 height: '40px', 
                 width: 'auto',
-                marginLeft: '16px' 
               }} 
             />
           </Box>
@@ -89,6 +107,7 @@ export default function MantraApp() {
             <Tab label="Log Recitation" />
             <Tab label="Metrics & Analytics" />
             <Tab label="Manage Mantras" />
+            <Tab label="API Test" />
           </Tabs>
         </Box>
         
@@ -102,6 +121,10 @@ export default function MantraApp() {
         
         <TabPanel value={tabValue} index={2}>
           <MantraManagement />
+        </TabPanel>
+        
+        <TabPanel value={tabValue} index={3}>
+          <ApiTest />
         </TabPanel>
       </Container>
     </>
