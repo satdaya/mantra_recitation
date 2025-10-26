@@ -26,6 +26,8 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Checkbox,
+  Paper,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -35,6 +37,7 @@ import {
   ExpandMore as ExpandMoreIcon,
 } from '@mui/icons-material';
 import { mantraService, Mantra } from '../services/mantraService';
+import WheelTimer from './WheelTimer';
 
 interface MantraManagementProps {
   onMantraAdded?: () => void;
@@ -63,6 +66,29 @@ const mantraCategories = {
 };
 
 const allCategories = Object.keys(mantraCategories);
+
+// Daily Banis list
+const dailyBanis = [
+  'Japji Sahib',
+  'Jaap Sahib', 
+  'Tav-Prasad Savaiye',
+  'Chaupai Sahib',
+  'Anand Sahib',
+  'Rehras Sahib',
+  'Kirtan Sohila',
+  'Sukhmani Sahib',
+  'Asa Di Var',
+  'Ramkali Ki Var'
+];
+
+// Bani tracking interface
+interface BaniSession {
+  bani: string;
+  completed: boolean;
+  startTime: string;
+  endTime: string;
+  date: string;
+}
 
 // Helper function to get default count based on category
 const getDefaultCountForCategory = (category: string): number => {
@@ -95,10 +121,50 @@ export default function MantraManagement({ onMantraAdded }: MantraManagementProp
     submittedBy: '',
   });
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+  
+  // Bani tracking state
+  const [baniSessions, setBaniSessions] = useState<BaniSession[]>([]);
+  const [showBaniTimer, setShowBaniTimer] = useState<string | null>(null);
 
   useEffect(() => {
     loadMantras();
+    loadBaniSessions();
   }, []);
+
+  const loadBaniSessions = () => {
+    const today = new Date().toISOString().split('T')[0];
+    const savedSessions = localStorage.getItem(`baniSessions_${today}`);
+    if (savedSessions) {
+      setBaniSessions(JSON.parse(savedSessions));
+    } else {
+      // Initialize today's sessions
+      const initialSessions: BaniSession[] = dailyBanis.map(bani => ({
+        bani,
+        completed: false,
+        startTime: '06:00 AM',
+        endTime: '06:30 AM',
+        date: today
+      }));
+      setBaniSessions(initialSessions);
+    }
+  };
+
+  const saveBaniSessions = (sessions: BaniSession[]) => {
+    const today = new Date().toISOString().split('T')[0];
+    localStorage.setItem(`baniSessions_${today}`, JSON.stringify(sessions));
+    setBaniSessions(sessions);
+  };
+
+  const updateBaniSession = (bani: string, updates: Partial<BaniSession>) => {
+    const updatedSessions = baniSessions.map(session =>
+      session.bani === bani ? { ...session, ...updates } : session
+    );
+    saveBaniSessions(updatedSessions);
+  };
+
+  const toggleBaniCompletion = (bani: string) => {
+    updateBaniSession(bani, { completed: !baniSessions.find(s => s.bani === bani)?.completed });
+  };
 
   const loadMantras = async () => {
     const allMantras = await mantraService.getAllMantras();
@@ -273,8 +339,96 @@ export default function MantraManagement({ onMantraAdded }: MantraManagementProp
 
         {/* Display selected category */}
         <Box>
+          {selectedCategory === 'Banis' && (
+            <Box>
+              <Typography variant="h6" gutterBottom>
+                Daily Banis Tracker
+              </Typography>
+              <Typography variant="body2" color="textSecondary" sx={{ mb: 3 }}>
+                Track your daily Bani recitations with precise start and end times
+              </Typography>
+
+              {/* Daily Banis List */}
+              <List>
+                {baniSessions.map((session) => (
+                  <ListItem key={session.bani} sx={{ 
+                    border: 1, 
+                    borderColor: 'divider', 
+                    borderRadius: 1, 
+                    mb: 1,
+                    backgroundColor: session.completed ? 'success.light' : 'background.paper'
+                  }}>
+                    <Checkbox
+                      checked={session.completed}
+                      onChange={() => toggleBaniCompletion(session.bani)}
+                      sx={{ mr: 2 }}
+                    />
+                    <ListItemText
+                      primary={
+                        <Typography variant="subtitle1" sx={{ 
+                          textDecoration: session.completed ? 'line-through' : 'none',
+                          fontWeight: session.completed ? 'normal' : 'medium'
+                        }}>
+                          {session.bani}
+                        </Typography>
+                      }
+                      secondary={
+                        session.completed 
+                          ? `Completed: ${session.startTime} - ${session.endTime}`
+                          : `Planned: ${session.startTime} - ${session.endTime}`
+                      }
+                    />
+                    <ListItemSecondaryAction>
+                      <Button
+                        size="small"
+                        variant={showBaniTimer === session.bani ? "contained" : "outlined"}
+                        onClick={() => setShowBaniTimer(showBaniTimer === session.bani ? null : session.bani)}
+                      >
+                        Set Times
+                      </Button>
+                    </ListItemSecondaryAction>
+                  </ListItem>
+                ))}
+              </List>
+
+              {/* Timer Interface */}
+              {showBaniTimer && (
+                <Paper elevation={2} sx={{ p: 3, mt: 2 }}>
+                  <Typography variant="h6" gutterBottom>
+                    Set Times for {showBaniTimer}
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                    <Box sx={{ flex: '1 1 300px' }}>
+                      <WheelTimer
+                        label="Start Time"
+                        value={baniSessions.find(s => s.bani === showBaniTimer)?.startTime || '06:00 AM'}
+                        onChange={(time) => updateBaniSession(showBaniTimer, { startTime: time })}
+                      />
+                    </Box>
+                    <Box sx={{ flex: '1 1 300px' }}>
+                      <WheelTimer
+                        label="End Time"
+                        value={baniSessions.find(s => s.bani === showBaniTimer)?.endTime || '06:30 AM'}
+                        onChange={(time) => updateBaniSession(showBaniTimer, { endTime: time })}
+                      />
+                    </Box>
+                  </Box>
+                  <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+                    <Button 
+                      variant="contained" 
+                      onClick={() => setShowBaniTimer(null)}
+                    >
+                      Done
+                    </Button>
+                  </Box>
+                </Paper>
+              )}
+            </Box>
+          )}
+
+          {/* Other categories (Japji Paurees, Assorted Mantras) */}
           {Object.entries(mantraCategories).map(([categoryKey, config]) => (
-            selectedCategory === categoryKey && (
+            selectedCategory === categoryKey && categoryKey !== 'Banis' && (
               <Box key={categoryKey}>
                 <Typography variant="h6" gutterBottom>
                   {config.name}
