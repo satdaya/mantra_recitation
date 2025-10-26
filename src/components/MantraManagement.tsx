@@ -21,12 +21,18 @@ import {
   MenuItem,
   Box,
   Alert,
+  Tabs,
+  Tab,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from '@mui/material';
 import {
   Add as AddIcon,
   Delete as DeleteIcon,
   CloudUpload as SubmitIcon,
   Edit as EditIcon,
+  ExpandMore as ExpandMoreIcon,
 } from '@mui/icons-material';
 import { mantraService, Mantra } from '../services/mantraService';
 
@@ -34,50 +40,51 @@ interface MantraManagementProps {
   onMantraAdded?: () => void;
 }
 
-const categories = [
-  // Sikh Categories
-  'Daily Banis',
-  'Core Mantras',
-  'Paurees',
-  'Simran',
-  // Universal Categories
-  'Devotion',
-  'Wisdom',
-  'Compassion',
-  'Peace',
-  'Healing',
-  'Protection',
-  'Prosperity',
-  'Self-realization',
-  'Other',
-];
+// Define the three main categories
+const mantraCategories = {
+  'Banis': {
+    name: 'Banis',
+    description: 'Daily prayers and complete compositions',
+    subcategories: ['Japji Sahib', 'Jaap Sahib', 'Sukhmani Sahib', 'Rehras Sahib', 'Kirtan Sohila', 'Ardas'],
+    defaultCount: 1
+  },
+  'Japji Paurees': {
+    name: 'Japji Paurees',
+    description: 'Individual verses from Japji Sahib',
+    subcategories: ['Pauree 1', 'Pauree 2', 'Pauree 3', 'Pauree 4', 'Pauree 5', 'Pauree 6', 'Pauree 7', 'Pauree 8', 'Pauree 9', 'Pauree 10', 'Pauree 11', 'Pauree 12', 'Pauree 13', 'Pauree 14', 'Pauree 15', 'Pauree 16', 'Pauree 17', 'Pauree 18', 'Pauree 19', 'Pauree 20', 'Pauree 21', 'Pauree 22', 'Pauree 23', 'Pauree 24', 'Pauree 25', 'Pauree 26', 'Pauree 27', 'Pauree 28', 'Pauree 29', 'Pauree 30', 'Pauree 31', 'Pauree 32', 'Pauree 33', 'Pauree 34', 'Pauree 35', 'Pauree 36', 'Pauree 37', 'Slok'],
+    defaultCount: 11
+  },
+  'Assorted Mantras': {
+    name: 'Assorted Mantras',
+    description: 'Individual mantras and simran',
+    subcategories: ['Waheguru', 'Satnam', 'Ik Onkar', 'Guru Mantra', 'Mool Mantra', 'Other Simran'],
+    defaultCount: 108
+  }
+};
+
+const allCategories = Object.keys(mantraCategories);
 
 // Helper function to get default count based on category
 const getDefaultCountForCategory = (category: string): number => {
-  const sikthCounts: Record<string, number> = {
-    'Daily Banis': 1, // Japji, Sukhmani, Rehras, Kirtan Sohila, Ardas all under this
-    'Core Mantras': 125000,
-    'Paurees': 11,
-    'Simran': 125000,
-    // Universal defaults
-    'Devotion': 108,
-    'Wisdom': 108,
-    'Compassion': 108,
-    'Peace': 108,
-    'Healing': 108,
-    'Protection': 108,
-    'Prosperity': 108,
-    'Self-realization': 108,
-    'Other': 108,
-  };
+  if (category === 'Banis') return 1;
+  if (category === 'Japji Paurees') return 11;
+  if (category === 'Assorted Mantras') return 108;
   
-  return sikthCounts[category] || 108;
+  // Check if it's a subcategory
+  for (const [mainCat, config] of Object.entries(mantraCategories)) {
+    if (config.subcategories.includes(category)) {
+      return config.defaultCount;
+    }
+  }
+  
+  return 108; // Default fallback
 };
 
 export default function MantraManagement({ onMantraAdded }: MantraManagementProps) {
   const [mantras, setMantras] = useState<Mantra[]>([]);
   const [open, setOpen] = useState(false);
   const [editingMantra, setEditingMantra] = useState<Mantra | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>('Banis');
   const [formData, setFormData] = useState({
     name: '',
     sanskrit: '',
@@ -201,6 +208,22 @@ export default function MantraManagement({ onMantraAdded }: MantraManagementProp
     setOpen(true);
   };
 
+  // Helper function to filter mantras by category
+  const getMantrasByCategory = (category: string) => {
+    return mantras.filter(mantra => {
+      // Check main category
+      if (mantra.category === category) return true;
+      
+      // Check subcategories
+      const categoryConfig = mantraCategories[category as keyof typeof mantraCategories];
+      if (categoryConfig && mantra.category && categoryConfig.subcategories.includes(mantra.category)) {
+        return true;
+      }
+      
+      return false;
+    });
+  };
+
   const userMantras = mantras.filter(m => m.source === 'user');
   const coreMantras = mantras.filter(m => m.source === 'core' && m.id !== 'custom');
 
@@ -230,100 +253,158 @@ export default function MantraManagement({ onMantraAdded }: MantraManagementProp
           </Alert>
         )}
 
-        <Box display="flex" flexWrap="wrap" gap={3}>
-          {/* Core Mantras */}
-          <Box flex="1" minWidth="300px">
-            <Typography variant="h6" gutterBottom>
-              Core Mantras ({coreMantras.length})
-            </Typography>
-            <List dense>
-              {coreMantras.map((mantra) => (
-                <ListItem key={mantra.id}>
-                  <ListItemText
-                    primary={mantra.name}
-                    secondary={
-                      <Box>
-                        {mantra.translation && (
-                          <Typography variant="body2" color="textSecondary">
-                            {mantra.translation}
-                          </Typography>
-                        )}
-                        {mantra.category && (
-                          <Chip 
-                            label={mantra.category} 
-                            size="small" 
-                            sx={{ mt: 0.5 }}
-                          />
-                        )}
-                      </Box>
-                    }
-                  />
-                </ListItem>
-              ))}
-            </List>
-          </Box>
+        {/* Category Tabs */}
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+          <Tabs 
+            value={selectedCategory} 
+            onChange={(e, newValue) => setSelectedCategory(newValue)}
+            variant="fullWidth"
+          >
+            {Object.entries(mantraCategories).map(([key, config]) => (
+              <Tab 
+                key={key}
+                label={config.name} 
+                value={key}
+                sx={{ textTransform: 'none' }}
+              />
+            ))}
+          </Tabs>
+        </Box>
 
-          {/* User Mantras */}
-          <Box flex="1" minWidth="300px">
-            <Typography variant="h6" gutterBottom>
-              Your Mantras ({userMantras.length})
-            </Typography>
-            <List dense>
-              {userMantras.map((mantra) => (
-                <ListItem key={mantra.id}>
-                  <ListItemText
-                    primary={mantra.name}
-                    secondary={
-                      <Box>
-                        {mantra.translation && (
-                          <Typography variant="body2" color="textSecondary">
-                            {mantra.translation}
-                          </Typography>
-                        )}
-                        <Box display="flex" gap={1} mt={0.5}>
-                          {mantra.category && (
-                            <Chip 
-                              label={mantra.category} 
-                              size="small"
-                            />
-                          )}
-                          <Chip 
-                            label="Personal" 
-                            size="small" 
-                            color="secondary"
+        {/* Display selected category */}
+        <Box>
+          {Object.entries(mantraCategories).map(([categoryKey, config]) => (
+            selectedCategory === categoryKey && (
+              <Box key={categoryKey}>
+                <Typography variant="h6" gutterBottom>
+                  {config.name}
+                </Typography>
+                <Typography variant="body2" color="textSecondary" sx={{ mb: 3 }}>
+                  {config.description}
+                </Typography>
+
+                {/* Core mantras for this category */}
+                <Accordion defaultExpanded>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Typography variant="h6">
+                      Core {config.name} ({getMantrasByCategory(categoryKey).filter(m => m.source === 'core').length})
+                    </Typography>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <List dense>
+                      {getMantrasByCategory(categoryKey)
+                        .filter(m => m.source === 'core')
+                        .map((mantra) => (
+                        <ListItem key={mantra.id}>
+                          <ListItemText
+                            primary={mantra.name}
+                            secondary={
+                              <Box>
+                                {mantra.gurmukhi && (
+                                  <Typography variant="body2" color="textSecondary">
+                                    {mantra.gurmukhi}
+                                  </Typography>
+                                )}
+                                {mantra.translation && (
+                                  <Typography variant="body2" color="textSecondary">
+                                    {mantra.translation}
+                                  </Typography>
+                                )}
+                                <Chip 
+                                  label={`Default: ${mantra.traditionalCount || config.defaultCount}`}
+                                  size="small" 
+                                  sx={{ mt: 0.5 }}
+                                />
+                              </Box>
+                            }
                           />
-                        </Box>
-                      </Box>
-                    }
-                  />
-                  <ListItemSecondaryAction>
-                    <IconButton
-                      onClick={() => handleEdit(mantra)}
-                      size="small"
-                      sx={{ mr: 1 }}
-                    >
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton
-                      edge="end"
-                      onClick={() => handleDelete(mantra.id)}
-                      size="small"
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </ListItemSecondaryAction>
-                </ListItem>
-              ))}
-              {userMantras.length === 0 && (
-                <ListItem>
-                  <ListItemText 
-                    primary="No personal mantras yet"
-                    secondary="Add your own mantras to this collection"
-                  />
-                </ListItem>
-              )}
-            </List>
-          </Box>
+                        </ListItem>
+                      ))}
+                      {getMantrasByCategory(categoryKey).filter(m => m.source === 'core').length === 0 && (
+                        <ListItem>
+                          <ListItemText 
+                            primary="No core mantras in this category yet"
+                            secondary="Check back as we add more content"
+                          />
+                        </ListItem>
+                      )}
+                    </List>
+                  </AccordionDetails>
+                </Accordion>
+
+                {/* User mantras for this category */}
+                <Accordion sx={{ mt: 2 }}>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Typography variant="h6">
+                      Your {config.name} ({getMantrasByCategory(categoryKey).filter(m => m.source === 'user').length})
+                    </Typography>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <List dense>
+                      {getMantrasByCategory(categoryKey)
+                        .filter(m => m.source === 'user')
+                        .map((mantra) => (
+                        <ListItem key={mantra.id}>
+                          <ListItemText
+                            primary={mantra.name}
+                            secondary={
+                              <Box>
+                                {mantra.gurmukhi && (
+                                  <Typography variant="body2" color="textSecondary">
+                                    {mantra.gurmukhi}
+                                  </Typography>
+                                )}
+                                {mantra.translation && (
+                                  <Typography variant="body2" color="textSecondary">
+                                    {mantra.translation}
+                                  </Typography>
+                                )}
+                                <Box display="flex" gap={1} mt={0.5}>
+                                  <Chip 
+                                    label={`Count: ${mantra.traditionalCount}`}
+                                    size="small"
+                                  />
+                                  <Chip 
+                                    label="Personal" 
+                                    size="small" 
+                                    color="secondary"
+                                  />
+                                </Box>
+                              </Box>
+                            }
+                          />
+                          <ListItemSecondaryAction>
+                            <IconButton
+                              onClick={() => handleEdit(mantra)}
+                              size="small"
+                              sx={{ mr: 1 }}
+                            >
+                              <EditIcon />
+                            </IconButton>
+                            <IconButton
+                              edge="end"
+                              onClick={() => handleDelete(mantra.id)}
+                              size="small"
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </ListItemSecondaryAction>
+                        </ListItem>
+                      ))}
+                      {getMantrasByCategory(categoryKey).filter(m => m.source === 'user').length === 0 && (
+                        <ListItem>
+                          <ListItemText 
+                            primary={`No personal ${config.name.toLowerCase()} yet`}
+                            secondary={`Add your own ${config.name.toLowerCase()} to this collection`}
+                          />
+                        </ListItem>
+                      )}
+                    </List>
+                  </AccordionDetails>
+                </Accordion>
+              </Box>
+            )
+          ))}
         </Box>
 
         {/* Add Mantra Dialog */}
@@ -387,11 +468,21 @@ export default function MantraManagement({ onMantraAdded }: MantraManagementProp
                         });
                       }}
                     >
-                      {categories.map((cat) => (
-                        <MenuItem key={cat} value={cat}>
-                          {cat}
+                      {/* Main categories */}
+                      {Object.entries(mantraCategories).map(([key, config]) => (
+                        <MenuItem key={key} value={key}>
+                          <strong>{config.name}</strong>
                         </MenuItem>
                       ))}
+                      
+                      {/* Subcategories */}
+                      {Object.entries(mantraCategories).map(([mainKey, config]) => 
+                        config.subcategories.map((subcat) => (
+                          <MenuItem key={`${mainKey}-${subcat}`} value={subcat} sx={{ pl: 4 }}>
+                            → {subcat}
+                          </MenuItem>
+                        ))
+                      )}
                     </Select>
                   </FormControl>
                   
