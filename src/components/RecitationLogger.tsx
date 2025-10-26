@@ -10,7 +10,6 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  ListSubheader,
 } from '@mui/material';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import dayjs, { Dayjs } from 'dayjs';
@@ -25,6 +24,7 @@ interface RecitationLoggerProps {
 
 export default function RecitationLogger({ onAddRecitation }: RecitationLoggerProps) {
   const [mantras, setMantras] = useState<Mantra[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState('');
   const [mantraName, setMantraName] = useState('');
   const [customMantra, setCustomMantra] = useState('');
   const [count, setCount] = useState<number>(108);
@@ -41,6 +41,13 @@ export default function RecitationLogger({ onAddRecitation }: RecitationLoggerPr
     setMantras(allMantras);
   };
 
+  // Handle category selection change
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category);
+    setMantraName(''); // Reset mantra selection when category changes
+    setCount(getDefaultCountForMantra(category)); // Set default count for category
+  };
+
   // Handle mantra selection change
   const handleMantraChange = (selectedMantraName: string) => {
     setMantraName(selectedMantraName);
@@ -55,6 +62,20 @@ export default function RecitationLogger({ onAddRecitation }: RecitationLoggerPr
         setCount(getDefaultCountForMantra(selectedMantraName));
       }
     }
+  };
+
+  // Get available mantras for the selected category
+  const getAvailableMantras = () => {
+    if (selectedCategory === 'Daily Banis') {
+      return dailyBanis;
+    } else if (selectedCategory === 'Japji Paurees') {
+      return mantraCategories['Japji Paurees'].subcategories;
+    } else if (selectedCategory === 'Assorted Mantras') {
+      return mantraCategories['Assorted Mantras'].subcategories;
+    } else if (selectedCategory === 'Personal Mantras') {
+      return mantras.filter(m => m.source === 'user').map(m => m.name);
+    }
+    return [];
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -74,13 +95,13 @@ export default function RecitationLogger({ onAddRecitation }: RecitationLoggerPr
       notes: notes || undefined,
     });
 
+    setSelectedCategory('');
+    setMantraName('');
+    setCustomMantra('');
     setCount(108);
     setDuration(15);
     setTimestamp(dayjs());
     setNotes('');
-    if (mantraName === 'custom') {
-      setCustomMantra('');
-    }
     
     // Reload mantras in case new ones were added
     loadMantras();
@@ -96,91 +117,56 @@ export default function RecitationLogger({ onAddRecitation }: RecitationLoggerPr
         <form onSubmit={handleSubmit}>
           <Box display="flex" flexDirection="column" gap={3}>
             <Box display="flex" flexWrap="wrap" gap={2}>
+              {/* Category Selection */}
               <Box flex="1" minWidth="200px">
                 <FormControl fullWidth>
-                  <InputLabel>Mantra</InputLabel>
+                  <InputLabel>Category</InputLabel>
                   <Select
-                    value={mantraName}
-                    onChange={(e) => handleMantraChange(e.target.value)}
+                    value={selectedCategory}
+                    onChange={(e) => handleCategoryChange(e.target.value)}
                     required
                   >
-                    {/* Daily Banis Section */}
-                    <ListSubheader>📿 Daily Banis</ListSubheader>
-                    {dailyBanis.map((bani) => (
-                      <MenuItem key={`bani-${bani}`} value={bani} sx={{ pl: 4 }}>
-                        {bani}
-                      </MenuItem>
-                    ))}
-                    
-                    {/* Japji Paurees Section */}
-                    <ListSubheader>🔢 Japji Paurees</ListSubheader>
-                    {mantraCategories['Japji Paurees'].subcategories.map((pauree) => (
-                      <MenuItem key={`pauree-${pauree}`} value={pauree} sx={{ pl: 4 }}>
-                        {pauree}
-                      </MenuItem>
-                    ))}
-                    
-                    {/* Assorted Mantras Section */}
-                    <ListSubheader>🕉️ Assorted Mantras</ListSubheader>
-                    {mantraCategories['Assorted Mantras'].subcategories.map((mantra) => (
-                      <MenuItem key={`assorted-${mantra}`} value={mantra} sx={{ pl: 4 }}>
-                        {mantra}
-                      </MenuItem>
-                    ))}
-                    
-                    {/* User/Personal Mantras Section */}
+                    <MenuItem value="Daily Banis">📿 Daily Banis</MenuItem>
+                    <MenuItem value="Japji Paurees">🔢 Japji Paurees</MenuItem>
+                    <MenuItem value="Assorted Mantras">🕉️ Assorted Mantras</MenuItem>
                     {mantras.filter(m => m.source === 'user').length > 0 && (
-                      <>
-                        <ListSubheader>👤 Your Personal Mantras</ListSubheader>
-                        {mantras
-                          .filter(m => m.source === 'user')
-                          .map((mantra) => (
-                            <MenuItem key={`user-${mantra.id}`} value={mantra.name} sx={{ pl: 4 }}>
-                              {mantra.name} (Personal)
-                            </MenuItem>
-                          ))}
-                      </>
-                    )}
-                    
-                    {/* Core Mantras that don't fit in categories */}
-                    {mantras.filter(m => 
-                      m.source === 'core' && 
-                      !dailyBanis.includes(m.name) &&
-                      !mantraCategories['Japji Paurees'].subcategories.includes(m.name) &&
-                      !mantraCategories['Assorted Mantras'].subcategories.includes(m.name)
-                    ).length > 0 && (
-                      <>
-                        <ListSubheader>📚 Other Core Mantras</ListSubheader>
-                        {mantras
-                          .filter(m => 
-                            m.source === 'core' && 
-                            !dailyBanis.includes(m.name) &&
-                            !mantraCategories['Japji Paurees'].subcategories.includes(m.name) &&
-                            !mantraCategories['Assorted Mantras'].subcategories.includes(m.name)
-                          )
-                          .map((mantra) => (
-                            <MenuItem key={`core-${mantra.id}`} value={mantra.name} sx={{ pl: 4 }}>
-                              {mantra.name}
-                            </MenuItem>
-                          ))}
-                      </>
+                      <MenuItem value="Personal Mantras">👤 Personal Mantras</MenuItem>
                     )}
                   </Select>
                 </FormControl>
               </Box>
-              
-              {mantraName === 'custom' && (
+
+              {/* Mantra Selection - Only show when category is selected */}
+              {selectedCategory && (
                 <Box flex="1" minWidth="200px">
-                  <TextField
-                    fullWidth
-                    label="Custom Mantra Name"
-                    value={customMantra}
-                    onChange={(e) => setCustomMantra(e.target.value)}
-                    required
-                  />
+                  <FormControl fullWidth>
+                    <InputLabel>Mantra</InputLabel>
+                    <Select
+                      value={mantraName}
+                      onChange={(e) => handleMantraChange(e.target.value)}
+                      required
+                    >
+                      {getAvailableMantras().map((mantra) => (
+                        <MenuItem key={`${selectedCategory}-${mantra}`} value={mantra}>
+                          {mantra}
+                          {selectedCategory === 'Personal Mantras' && ' (Personal)'}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                 </Box>
               )}
             </Box>
+            
+            {mantraName === 'custom' && (
+              <TextField
+                fullWidth
+                label="Custom Mantra Name"
+                value={customMantra}
+                onChange={(e) => setCustomMantra(e.target.value)}
+                required
+              />
+            )}
             
             <Box display="flex" flexWrap="wrap" gap={2}>
               <Box flex="1" minWidth="150px">
