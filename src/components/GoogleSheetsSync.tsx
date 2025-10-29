@@ -76,12 +76,16 @@ const GoogleSheetsSync: React.FC<GoogleSheetsSyncProps> = ({ onSyncComplete }) =
     setMessage('');
 
     try {
+      console.log('Starting Google Sheets sync...');
       const success = await mantraService.refreshGoogleSheets();
 
       if (success) {
-        setMessage('Successfully synced mantras from Google Sheets!');
+        const mantras = await mantraService.getAllMantras();
+        const gsMantraCount = mantras.filter(m => m.id.startsWith('gsheet-')).length;
+        setMessage(`Successfully synced ${gsMantraCount} mantras from Google Sheets!`);
         setMessageType('success');
         setLastSyncTime(new Date());
+        console.log(`Synced ${gsMantraCount} mantras from Google Sheets`);
         if (onSyncComplete) {
           onSyncComplete();
         }
@@ -90,6 +94,7 @@ const GoogleSheetsSync: React.FC<GoogleSheetsSyncProps> = ({ onSyncComplete }) =
         setMessageType('error');
       }
     } catch (error: any) {
+      console.error('Sync error:', error);
       setMessage(error.message || 'An error occurred during sync');
       setMessageType('error');
     } finally {
@@ -215,7 +220,7 @@ REACT_APP_GOOGLE_SHEET_ID=your_sheet_id`}
 
               <Divider />
 
-              <Stack direction="row" spacing={2}>
+              <Stack direction="row" spacing={2} flexWrap="wrap">
                 <Button
                   variant="contained"
                   onClick={handleSync}
@@ -223,6 +228,18 @@ REACT_APP_GOOGLE_SHEET_ID=your_sheet_id`}
                   startIcon={isSyncing ? <CircularProgress size={20} /> : <SyncIcon />}
                 >
                   {isSyncing ? 'Syncing...' : 'Sync Now'}
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={() => {
+                    localStorage.removeItem('coreMantras');
+                    localStorage.removeItem('googleSheetsMantras');
+                    setMessage('Cache cleared! Click "Sync Now" to reload data.');
+                    setMessageType('info');
+                  }}
+                  disabled={isSyncing}
+                >
+                  Clear Cache
                 </Button>
                 <Button
                   variant="outlined"
