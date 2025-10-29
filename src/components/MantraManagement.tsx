@@ -39,6 +39,7 @@ import {
 import { mantraService, Mantra } from '../services/mantraService';
 import WheelTimer from './WheelTimer';
 import { mantraCategories, dailyBanis, getDefaultCountForMantra } from '../constants/mantraCategories';
+import GoogleSheetsSync from './GoogleSheetsSync';
 
 interface MantraManagementProps {
   onMantraAdded?: () => void;
@@ -266,6 +267,11 @@ export default function MantraManagement({ onMantraAdded }: MantraManagementProp
           </Alert>
         )}
 
+        {/* Google Sheets Sync */}
+        <Box sx={{ mb: 3 }}>
+          <GoogleSheetsSync onSyncComplete={loadMantras} />
+        </Box>
+
         {/* Category Tabs */}
         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
           <Tabs 
@@ -398,7 +404,21 @@ export default function MantraManagement({ onMantraAdded }: MantraManagementProp
                         .map((mantra) => (
                         <ListItem key={mantra.id}>
                           <ListItemText
-                            primary={mantra.name}
+                            primary={
+                              <Box display="flex" alignItems="center" gap={1}>
+                                {mantra.name}
+                                {mantra.optionality && (
+                                  <Chip
+                                    label={mantra.optionality}
+                                    size="small"
+                                    color={
+                                      mantra.optionality === 'Required' ? 'error' :
+                                      mantra.optionality === 'Recommended' ? 'warning' : 'default'
+                                    }
+                                  />
+                                )}
+                              </Box>
+                            }
                             secondary={
                               <Box>
                                 {mantra.gurmukhi && (
@@ -406,16 +426,31 @@ export default function MantraManagement({ onMantraAdded }: MantraManagementProp
                                     {mantra.gurmukhi}
                                   </Typography>
                                 )}
-                                {mantra.translation && (
-                                  <Typography variant="body2" color="textSecondary">
-                                    {mantra.translation}
+                                {(mantra.significance || mantra.translation) && (
+                                  <Typography variant="body2" color="textSecondary" sx={{ fontStyle: 'italic' }}>
+                                    {mantra.significance || mantra.translation}
                                   </Typography>
                                 )}
-                                <Chip 
-                                  label={`Default: ${mantra.traditionalCount || config.defaultCount}`}
-                                  size="small" 
-                                  sx={{ mt: 0.5 }}
-                                />
+                                {mantra.guruAuthorship && (
+                                  <Typography variant="caption" color="textSecondary" display="block">
+                                    By: {mantra.guruAuthorship}
+                                  </Typography>
+                                )}
+                                <Box display="flex" gap={1} mt={0.5} flexWrap="wrap">
+                                  {(mantra.targetRecitations || mantra.traditionalCount) && (
+                                    <Chip
+                                      label={`Target: ${mantra.targetRecitations || mantra.traditionalCount}`}
+                                      size="small"
+                                    />
+                                  )}
+                                  {mantra.optimalTime && (
+                                    <Chip
+                                      label={`Best time: ${mantra.optimalTime}`}
+                                      size="small"
+                                      variant="outlined"
+                                    />
+                                  )}
+                                </Box>
                               </Box>
                             }
                           />
@@ -447,7 +482,21 @@ export default function MantraManagement({ onMantraAdded }: MantraManagementProp
                         .map((mantra) => (
                         <ListItem key={mantra.id}>
                           <ListItemText
-                            primary={mantra.name}
+                            primary={
+                              <Box display="flex" alignItems="center" gap={1}>
+                                {mantra.name}
+                                {mantra.optionality && (
+                                  <Chip
+                                    label={mantra.optionality}
+                                    size="small"
+                                    color={
+                                      mantra.optionality === 'Required' ? 'error' :
+                                      mantra.optionality === 'Recommended' ? 'warning' : 'default'
+                                    }
+                                  />
+                                )}
+                              </Box>
+                            }
                             secondary={
                               <Box>
                                 {mantra.gurmukhi && (
@@ -455,19 +504,33 @@ export default function MantraManagement({ onMantraAdded }: MantraManagementProp
                                     {mantra.gurmukhi}
                                   </Typography>
                                 )}
-                                {mantra.translation && (
-                                  <Typography variant="body2" color="textSecondary">
-                                    {mantra.translation}
+                                {(mantra.significance || mantra.translation) && (
+                                  <Typography variant="body2" color="textSecondary" sx={{ fontStyle: 'italic' }}>
+                                    {mantra.significance || mantra.translation}
                                   </Typography>
                                 )}
-                                <Box display="flex" gap={1} mt={0.5}>
-                                  <Chip 
-                                    label={`Count: ${mantra.traditionalCount}`}
+                                {mantra.guruAuthorship && (
+                                  <Typography variant="caption" color="textSecondary" display="block">
+                                    By: {mantra.guruAuthorship}
+                                  </Typography>
+                                )}
+                                <Box display="flex" gap={1} mt={0.5} flexWrap="wrap">
+                                  {(mantra.targetRecitations || mantra.traditionalCount) && (
+                                    <Chip
+                                      label={`Target: ${mantra.targetRecitations || mantra.traditionalCount}`}
+                                      size="small"
+                                    />
+                                  )}
+                                  {mantra.optimalTime && (
+                                    <Chip
+                                      label={`Best time: ${mantra.optimalTime}`}
+                                      size="small"
+                                      variant="outlined"
+                                    />
+                                  )}
+                                  <Chip
+                                    label="Personal"
                                     size="small"
-                                  />
-                                  <Chip 
-                                    label="Personal" 
-                                    size="small" 
                                     color="secondary"
                                   />
                                 </Box>

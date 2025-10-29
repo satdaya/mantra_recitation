@@ -1,14 +1,18 @@
-// Hybrid Mantra Service: FastAPI Backend + Airtable + User Submissions
+// Hybrid Mantra Service: FastAPI Backend + Airtable + Google Sheets + User Submissions
 import { api } from '../lib/api';
+import { googleSheetsService } from './googleSheetsService';
 
 const AIRTABLE_BASE_ID = process.env.REACT_APP_AIRTABLE_BASE_ID;
 const AIRTABLE_API_KEY = process.env.REACT_APP_AIRTABLE_API_KEY;
+const GOOGLE_SHEET_ENABLED = process.env.REACT_APP_GOOGLE_CLIENT_ID &&
+                              process.env.REACT_APP_GOOGLE_API_KEY &&
+                              process.env.REACT_APP_GOOGLE_SHEET_ID;
 
 export interface Mantra {
   id: string;
   name: string;
   sanskrit?: string;
-  gurmukhi?: string; // Added Gurmukhi script support
+  gurmukhi?: string; // Gurmukhi script
   translation?: string;
   category?: string;
   traditionalCount?: number;
@@ -16,24 +20,34 @@ export interface Mantra {
   source: 'core' | 'user' | 'pending'; // Track source
   submittedBy?: string;
   submittedAt?: Date;
+  // New fields from Google Sheets
+  optimalTime?: string; // Best time for recitation
+  optionality?: string; // Required, Recommended, Optional
+  targetRecitations?: number; // Target count for practice
+  guruAuthorship?: string; // Which Guru authored this
+  guruNumber?: number; // Guru number (1-10)
+  significance?: string; // Meaning and significance
 }
 
 class MantraService {
   private coreMantrasCacheKey = 'coreMantras';
+  private googleSheetsCacheKey = 'googleSheetsMantras';
   private userMantrasKey = 'userMantras';
   private cacheExpiry = 24 * 60 * 60 * 1000; // 24 hours
 
-  // Get all mantras (backend + core + user submissions)
+  // Get all mantras (backend + core + google sheets + user submissions)
   async getAllMantras(): Promise<Mantra[]> {
-    const [backendMantras, coreMantras, userMantras] = await Promise.all([
+    const [backendMantras, coreMantras, googleSheetsMantras, userMantras] = await Promise.all([
       this.getBackendMantras(),
       this.getCoreMantras(),
+      this.getGoogleSheetsMantras(),
       this.getUserMantras(),
     ]);
 
     return [
       ...backendMantras,
       ...coreMantras,
+      ...googleSheetsMantras,
       ...userMantras,
       { id: 'custom', name: 'Custom', source: 'core' as const }, // Always keep custom option
     ];
@@ -102,6 +116,47 @@ class MantraService {
     } catch (error) {
       console.error('Error fetching core mantras:', error);
       return this.getDefaultCoreMantras();
+    }
+  }
+
+  // Get mantras from Google Sheets (with caching)
+  private async getGoogleSheetsMantras(): Promise<Mantra[]> {
+    if (!GOOGLE_SHEET_ENABLED) return [];
+
+    const cached = this.getCachedGoogleSheetsMantras();
+    if (cached) return cached;
+
+    try {
+      const mantras = await googleSheetsService.getMantras();
+
+      // Cache the results
+      localStorage.setItem(this.googleSheetsCacheKey, JSON.stringify({
+        data: mantras,
+        timestamp: Date.now(),
+      }));
+
+      return mantras;
+    } catch (error) {
+      console.error('Error fetching Google Sheets mantras:', error);
+      return [];
+    }
+  }
+
+  // Get cached Google Sheets mantras if still valid
+  private getCachedGoogleSheetsMantras(): Mantra[] | null {
+    try {
+      const cached = localStorage.getItem(this.googleSheetsCacheKey);
+      if (!cached) return null;
+
+      const { data, timestamp } = JSON.parse(cached);
+      if (Date.now() - timestamp > this.cacheExpiry) {
+        localStorage.removeItem(this.googleSheetsCacheKey);
+        return null;
+      }
+
+      return data;
+    } catch {
+      return null;
     }
   }
 
@@ -274,6 +329,31 @@ class MantraService {
   // Clear cache (for testing or manual refresh)
   clearCache(): void {
     localStorage.removeItem(this.coreMantrasCacheKey);
+    localStorage.removeItem(this.googleSheetsCacheKey);
+  }
+
+  // Google Sheets specific methods
+  isGoogleSheetsEnabled(): boolean {
+    return !!GOOGLE_SHEET_ENABLED;
+  }
+
+  async refreshGoogleSheets(): Promise<boolean> {
+    try {
+      localStorage.removeItem(this.googleSheetsCacheKey);
+      await this.getGoogleSheetsMantras();
+      return true;
+    } catch (error) {
+      console.error('Error refreshing Google Sheets:', error);
+      return false;
+    }
+  }
+
+  async testGoogleSheetsConnection(): Promise<{ success: boolean; message: string; sheetNames?: string[] }> {
+    return await googleSheetsService.testConnection();
+  }
+
+  getGoogleSheetsService() {
+    return googleSheetsService;
   }
 }
 
