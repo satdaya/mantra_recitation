@@ -232,14 +232,18 @@ REACT_APP_GOOGLE_SHEET_ID=your_sheet_id`}
                 <Button
                   variant="outlined"
                   onClick={() => {
+                    // Clear all mantra caches
                     localStorage.removeItem('coreMantras');
                     localStorage.removeItem('googleSheetsMantras');
-                    setMessage('Cache cleared! Click "Sync Now" to reload data.');
+                    localStorage.removeItem('mantraRecitations');
+                    setMessage('Cache cleared! Reloading page...');
                     setMessageType('info');
+                    // Reload page to refresh data
+                    setTimeout(() => window.location.reload(), 1000);
                   }}
                   disabled={isSyncing}
                 >
-                  Clear Cache
+                  Clear All Cache
                 </Button>
                 <Button
                   variant="outlined"

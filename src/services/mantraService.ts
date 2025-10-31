@@ -35,11 +35,11 @@ class MantraService {
   private userMantrasKey = 'userMantras';
   private cacheExpiry = 24 * 60 * 60 * 1000; // 24 hours
 
-  // Get all mantras (backend + core + google sheets + user submissions)
+  // Get all mantras (prioritize Google Sheets, fallback to backend + core)
   async getAllMantras(): Promise<Mantra[]> {
     const [backendMantras, coreMantras, googleSheetsMantras, userMantras] = await Promise.all([
-      this.getBackendMantras(),
-      this.getCoreMantras(),
+      GOOGLE_SHEET_ENABLED ? Promise.resolve([]) : this.getBackendMantras(), // Skip backend if Google Sheets enabled
+      GOOGLE_SHEET_ENABLED ? Promise.resolve([]) : this.getCoreMantras(),    // Skip Airtable if Google Sheets enabled
       this.getGoogleSheetsMantras(),
       this.getUserMantras(),
     ]);

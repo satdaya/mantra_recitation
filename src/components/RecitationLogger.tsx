@@ -38,6 +38,9 @@ export default function RecitationLogger({ onAddRecitation }: RecitationLoggerPr
 
   const loadMantras = async () => {
     const allMantras = await mantraService.getAllMantras();
+    console.log('Total mantras loaded:', allMantras.length);
+    console.log('Google Sheets mantras:', allMantras.filter(m => m.id.startsWith('gsheet-')));
+    console.log('Core mantras (not from sheets):', allMantras.filter(m => m.source === 'core' && !m.id.startsWith('gsheet-')));
     setMantras(allMantras);
   };
 
@@ -66,15 +69,39 @@ export default function RecitationLogger({ onAddRecitation }: RecitationLoggerPr
 
   // Get available mantras for the selected category
   const getAvailableMantras = () => {
-    if (selectedCategory === 'Daily Banis') {
-      return dailyBanis;
-    } else if (selectedCategory === 'Japji Paurees') {
-      return mantraCategories['Japji Paurees'].subcategories;
-    } else if (selectedCategory === 'Assorted Mantras') {
-      return mantraCategories['Assorted Mantras'].subcategories;
-    } else if (selectedCategory === 'Personal Mantras') {
+    if (selectedCategory === 'Personal Mantras') {
       return mantras.filter(m => m.source === 'user').map(m => m.name);
     }
+
+    // Get mantras from Google Sheets or other sources that match the category
+    const categoryMapping: Record<string, string> = {
+      'Daily Banis': 'Banis',
+      'Japji Paurees': 'Japji Paurees',
+      'Assorted Mantras': 'Assorted Mantras'
+    };
+
+    const categoryName = categoryMapping[selectedCategory];
+    if (categoryName) {
+      const categoryMantras = mantras
+        .filter(m => m.category === categoryName && m.source === 'core')
+        .map(m => m.name);
+
+      console.log(`Category: ${selectedCategory}, Looking for: ${categoryName}`);
+      console.log('Matching mantras:', categoryMantras);
+      console.log('All categories in mantras:', Array.from(new Set(mantras.map(m => m.category))));
+
+      // If we found mantras from Google Sheets, use them
+      if (categoryMantras.length > 0) {
+        return categoryMantras;
+      }
+
+      // Otherwise fall back to hardcoded lists (for backwards compatibility)
+      console.log('No Google Sheets mantras found, using hardcoded list');
+      if (selectedCategory === 'Daily Banis') return dailyBanis;
+      if (selectedCategory === 'Japji Paurees') return mantraCategories['Japji Paurees'].subcategories;
+      if (selectedCategory === 'Assorted Mantras') return mantraCategories['Assorted Mantras'].subcategories;
+    }
+
     return [];
   };
 

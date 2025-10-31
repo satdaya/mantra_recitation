@@ -106,24 +106,19 @@ export default function MantraApp() {
           <Tabs value={tabValue} onChange={handleTabChange}>
             <Tab label="Log Recitation" />
             <Tab label="Metrics & Analytics" />
-            <Tab label="Manage Mantras" />
             <Tab label="API Test" />
           </Tabs>
         </Box>
-        
+
         <TabPanel value={tabValue} index={0}>
           <RecitationLogger onAddRecitation={addRecitation} />
         </TabPanel>
-        
+
         <TabPanel value={tabValue} index={1}>
           <MetricsDashboard recitations={recitations} />
         </TabPanel>
-        
+
         <TabPanel value={tabValue} index={2}>
-          <MantraManagement />
-        </TabPanel>
-        
-        <TabPanel value={tabValue} index={3}>
           <ApiTest />
         </TabPanel>
       </Container>
