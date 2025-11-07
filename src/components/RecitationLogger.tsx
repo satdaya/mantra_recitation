@@ -28,8 +28,8 @@ export default function RecitationLogger({ onAddRecitation }: RecitationLoggerPr
   const [mantraName, setMantraName] = useState('');
   const [customMantra, setCustomMantra] = useState('');
   const [count, setCount] = useState<number>(108);
-  const [duration, setDuration] = useState<number>(15);
-  const [timestamp, setTimestamp] = useState<Dayjs>(dayjs());
+  const [duration, setDuration] = useState<number | ''>('');
+  const [timestamp, setTimestamp] = useState<Dayjs | null>(dayjs());
   const [notes, setNotes] = useState('');
 
   useEffect(() => {
@@ -38,9 +38,6 @@ export default function RecitationLogger({ onAddRecitation }: RecitationLoggerPr
 
   const loadMantras = async () => {
     const allMantras = await mantraService.getAllMantras();
-    console.log('Total mantras loaded:', allMantras.length);
-    console.log('Google Sheets mantras:', allMantras.filter(m => m.id.startsWith('gsheet-')));
-    console.log('Core mantras (not from sheets):', allMantras.filter(m => m.source === 'core' && !m.id.startsWith('gsheet-')));
     setMantras(allMantras);
   };
 
@@ -86,17 +83,12 @@ export default function RecitationLogger({ onAddRecitation }: RecitationLoggerPr
         .filter(m => m.category === categoryName && m.source === 'core')
         .map(m => m.name);
 
-      console.log(`Category: ${selectedCategory}, Looking for: ${categoryName}`);
-      console.log('Matching mantras:', categoryMantras);
-      console.log('All categories in mantras:', Array.from(new Set(mantras.map(m => m.category))));
-
       // If we found mantras from Google Sheets, use them
       if (categoryMantras.length > 0) {
         return categoryMantras;
       }
 
       // Otherwise fall back to hardcoded lists (for backwards compatibility)
-      console.log('No Google Sheets mantras found, using hardcoded list');
       if (selectedCategory === 'Daily Banis') return dailyBanis;
       if (selectedCategory === 'Japji Paurees') return mantraCategories['Japji Paurees'].subcategories;
       if (selectedCategory === 'Assorted Mantras') return mantraCategories['Assorted Mantras'].subcategories;
@@ -107,18 +99,18 @@ export default function RecitationLogger({ onAddRecitation }: RecitationLoggerPr
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const finalMantraName = mantraName === 'custom' ? customMantra : mantraName;
-    
-    if (!finalMantraName || count <= 0 || duration <= 0) {
+
+    if (!finalMantraName || count <= 0) {
       return;
     }
 
     onAddRecitation({
       mantraName: finalMantraName,
       count,
-      duration,
-      timestamp: timestamp.toDate(),
+      duration: duration === '' ? undefined : duration,
+      timestamp: timestamp ? timestamp.toDate() : undefined,
       notes: notes || undefined,
     });
 
@@ -126,10 +118,10 @@ export default function RecitationLogger({ onAddRecitation }: RecitationLoggerPr
     setMantraName('');
     setCustomMantra('');
     setCount(108);
-    setDuration(15);
+    setDuration('');
     setTimestamp(dayjs());
     setNotes('');
-    
+
     // Reload mantras in case new ones were added
     loadMantras();
   };
@@ -211,24 +203,23 @@ export default function RecitationLogger({ onAddRecitation }: RecitationLoggerPr
               <Box flex="1" minWidth="150px">
                 <TextField
                   fullWidth
-                  label="Duration (minutes)"
+                  label="Duration (minutes) - Optional"
                   type="number"
                   value={duration}
-                  onChange={(e) => setDuration(Number(e.target.value))}
+                  onChange={(e) => setDuration(e.target.value === '' ? '' : Number(e.target.value))}
                   inputProps={{ min: 1 }}
-                  required
+                  placeholder="Leave empty if unknown"
                 />
               </Box>
-              
+
               <Box flex="1" minWidth="250px">
                 <DateTimePicker
                   label="Date & Time"
                   value={timestamp}
-                  onChange={(newValue) => newValue && setTimestamp(newValue)}
+                  onChange={(newValue) => setTimestamp(newValue)}
                   slotProps={{
                     textField: {
                       fullWidth: true,
-                      required: true,
                     },
                   }}
                 />

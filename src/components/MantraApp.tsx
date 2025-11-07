@@ -11,7 +11,6 @@ import {
 } from '@mui/material';
 import RecitationLogger from './RecitationLogger';
 import MetricsDashboard from './MetricsDashboard';
-import MantraManagement from './MantraManagement';
 import ApiTest from './ApiTest';
 import { MantraRecitation } from '../types';
 import { mantraService } from '../services/mantraService';

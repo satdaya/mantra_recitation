@@ -2,8 +2,8 @@ export interface MantraRecitation {
   id: string;
   mantraName: string;
   count: number;
-  duration: number; // in minutes
-  timestamp: Date;
+  duration?: number; // in minutes (optional)
+  timestamp?: Date; // optional
   notes?: string;
 }
 

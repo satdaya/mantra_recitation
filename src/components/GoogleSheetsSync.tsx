@@ -76,7 +76,6 @@ const GoogleSheetsSync: React.FC<GoogleSheetsSyncProps> = ({ onSyncComplete }) =
     setMessage('');
 
     try {
-      console.log('Starting Google Sheets sync...');
       const success = await mantraService.refreshGoogleSheets();
 
       if (success) {
@@ -85,7 +84,6 @@ const GoogleSheetsSync: React.FC<GoogleSheetsSyncProps> = ({ onSyncComplete }) =
         setMessage(`Successfully synced ${gsMantraCount} mantras from Google Sheets!`);
         setMessageType('success');
         setLastSyncTime(new Date());
-        console.log(`Synced ${gsMantraCount} mantras from Google Sheets`);
         if (onSyncComplete) {
           onSyncComplete();
         }
@@ -94,7 +92,6 @@ const GoogleSheetsSync: React.FC<GoogleSheetsSyncProps> = ({ onSyncComplete }) =
         setMessageType('error');
       }
     } catch (error: any) {
-      console.error('Sync error:', error);
       setMessage(error.message || 'An error occurred during sync');
       setMessageType('error');
     } finally {

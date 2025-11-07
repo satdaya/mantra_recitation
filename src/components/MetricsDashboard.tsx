@@ -42,13 +42,14 @@ export default function MetricsDashboard({ recitations }: MetricsDashboardProps)
 
     const totalRecitations = recitations.length;
     const totalCount = recitations.reduce((sum, r) => sum + r.count, 0);
-    const totalDuration = recitations.reduce((sum, r) => sum + r.duration, 0);
-    
+    const totalDuration = recitations.reduce((sum, r) => sum + (r.duration || 0), 0);
+    const recitationsWithDuration = recitations.filter(r => r.duration !== undefined && r.duration !== null).length;
+
     const mantraCounts = recitations.reduce((acc, r) => {
       acc[r.mantraName] = (acc[r.mantraName] || 0) + r.count;
       return acc;
     }, {} as Record<string, number>);
-    
+
     const mostRecitedMantra = Object.entries(mantraCounts).reduce(
       (max, [mantra, count]) => count > max.count ? { mantra, count } : max,
       { mantra: '', count: 0 }
@@ -59,19 +60,24 @@ export default function MetricsDashboard({ recitations }: MetricsDashboardProps)
       totalCount,
       totalDuration,
       averageCount: Math.round(totalCount / totalRecitations),
-      averageDuration: Math.round(totalDuration / totalRecitations),
+      averageDuration: recitationsWithDuration > 0 ? Math.round(totalDuration / recitationsWithDuration) : 0,
       mostRecitedMantra,
     };
   }, [recitations]);
 
   const dailyStats: DailyStats[] = useMemo(() => {
     const dailyData = recitations.reduce((acc, r) => {
+      // Skip recitations without timestamp
+      if (!r.timestamp) {
+        return acc;
+      }
+
       const date = dayjs(r.timestamp).format('YYYY-MM-DD');
       if (!acc[date]) {
         acc[date] = { date, count: 0, duration: 0, recitations: 0 };
       }
       acc[date].count += r.count;
-      acc[date].duration += r.duration;
+      acc[date].duration += (r.duration || 0);
       acc[date].recitations += 1;
       return acc;
     }, {} as Record<string, DailyStats>);
