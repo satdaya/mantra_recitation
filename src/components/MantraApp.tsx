@@ -14,6 +14,7 @@ import MetricsDashboard from './MetricsDashboard';
 import ApiTest from './ApiTest';
 import { MantraRecitation } from '../types';
 import { mantraService } from '../services/mantraService';
+import { syncQueueService } from '../services/syncQueueService';
 // import logo from '../assets/your-image.png'; // Uncomment and update path
 
 interface TabPanelProps {
@@ -42,6 +43,7 @@ export default function MantraApp() {
   const [tabValue, setTabValue] = useState(0);
   const [recitations, setRecitations] = useState<MantraRecitation[]>([]);
   const [backendStatus, setBackendStatus] = useState<'connecting' | 'connected' | 'disconnected'>('connecting');
+  const [syncPending, setSyncPending] = useState(0);
 
   useEffect(() => {
     const savedRecitations = localStorage.getItem('mantraRecitations');
@@ -57,6 +59,20 @@ export default function MantraApp() {
       .catch(() => {
         setBackendStatus('disconnected');
       });
+
+    // Start auto-sync
+    syncQueueService.startAutoSync(30000); // Sync every 30 seconds
+
+    // Subscribe to sync status changes
+    const unsubscribe = syncQueueService.subscribe((status) => {
+      setSyncPending(status.pending);
+    });
+
+    // Cleanup on unmount
+    return () => {
+      syncQueueService.stopAutoSync();
+      unsubscribe();
+    };
   }, []);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -71,6 +87,9 @@ export default function MantraApp() {
     const updatedRecitations = [...recitations, newRecitation];
     setRecitations(updatedRecitations);
     localStorage.setItem('mantraRecitations', JSON.stringify(updatedRecitations));
+
+    // Queue for backend sync (works offline)
+    syncQueueService.queueRecitation(recitation);
   };
 
   return (
@@ -81,20 +100,28 @@ export default function MantraApp() {
             Mantra Recitation Tracker
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            {/* Sync Status */}
+            {syncPending > 0 && (
+              <Chip
+                label={`${syncPending} pending sync`}
+                color="warning"
+                size="small"
+              />
+            )}
             {/* Backend Connection Status */}
-            <Chip 
+            <Chip
               label={backendStatus === 'connecting' ? 'Connecting...' : backendStatus === 'connected' ? 'Backend Connected' : 'Backend Offline'}
               color={backendStatus === 'connected' ? 'success' : backendStatus === 'connecting' ? 'default' : 'error'}
               size="small"
             />
             {/* Add your image here */}
-            <img 
+            <img
               src="/Nishan_Sahib.svg.png" // Replace with your image path
-              alt="Logo" 
-              style={{ 
-                height: '40px', 
+              alt="Logo"
+              style={{
+                height: '40px',
                 width: 'auto',
-              }} 
+              }}
             />
           </Box>
         </Toolbar>
