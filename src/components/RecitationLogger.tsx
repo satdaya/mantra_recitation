@@ -38,6 +38,9 @@ export default function RecitationLogger({ onAddRecitation }: RecitationLoggerPr
 
   const loadMantras = async () => {
     const allMantras = await mantraService.getAllMantras();
+    console.log('All loaded mantras:', allMantras);
+    console.log('Categories found:', Array.from(new Set(allMantras.map(m => m.category))));
+    console.log('Google Sheets mantras:', allMantras.filter(m => m.id.startsWith('gsheet-')));
     setMantras(allMantras);
   };
 
@@ -83,15 +86,12 @@ export default function RecitationLogger({ onAddRecitation }: RecitationLoggerPr
         .filter(m => m.category === categoryName && m.source === 'core')
         .map(m => m.name);
 
-      // If we found mantras from Google Sheets, use them
-      if (categoryMantras.length > 0) {
         return categoryMantras;
-      }
+      console.log(`Looking for category: ${categoryName}, found ${categoryMantras.length} mantras`);
+      console.log('Matching mantras:', categoryMantras);
 
-      // Otherwise fall back to hardcoded lists (for backwards compatibility)
-      if (selectedCategory === 'Daily Banis') return dailyBanis;
-      if (selectedCategory === 'Japji Paurees') return mantraCategories['Japji Paurees'].subcategories;
-      if (selectedCategory === 'Assorted Mantras') return mantraCategories['Assorted Mantras'].subcategories;
+      // Return Google Sheets mantras (no fallback to hardcoded lists)
+      return categoryMantras;
     }
 
     return [];

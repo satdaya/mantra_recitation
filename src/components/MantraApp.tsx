@@ -12,6 +12,7 @@ import {
 import RecitationLogger from './RecitationLogger';
 import MetricsDashboard from './MetricsDashboard';
 import ApiTest from './ApiTest';
+import DebugPanel from './DebugPanel';
 import { MantraRecitation } from '../types';
 import { mantraService } from '../services/mantraService';
 import { syncQueueService } from '../services/syncQueueService';
@@ -133,6 +134,7 @@ export default function MantraApp() {
             <Tab label="Log Recitation" />
             <Tab label="Metrics & Analytics" />
             <Tab label="API Test" />
+            <Tab label="Debug" />
           </Tabs>
         </Box>
 
@@ -146,6 +148,10 @@ export default function MantraApp() {
 
         <TabPanel value={tabValue} index={2}>
           <ApiTest />
+        </TabPanel>
+
+        <TabPanel value={tabValue} index={3}>
+          <DebugPanel />
         </TabPanel>
       </Container>
     </>
