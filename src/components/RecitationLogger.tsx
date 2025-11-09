@@ -86,7 +86,6 @@ export default function RecitationLogger({ onAddRecitation }: RecitationLoggerPr
         .filter(m => m.category === categoryName && m.source === 'core')
         .map(m => m.name);
 
-        return categoryMantras;
       console.log(`Looking for category: ${categoryName}, found ${categoryMantras.length} mantras`);
       console.log('Matching mantras:', categoryMantras);
 
