@@ -284,17 +284,18 @@ class MantraService {
 
   // Save recitation to backend
   async saveRecitation(recitationData: {
-    mantraId: string;
+    mantraName: string;
     count: number;
-    duration: number;
+    durationMinutes: number;
+    recitationTimestamp: Date;
     notes?: string;
   }): Promise<boolean> {
     try {
       await api.createRecitation({
-        mantra_id: recitationData.mantraId,
-        user_id: 'default-user', // You can enhance this with real user management
+        mantra_name: recitationData.mantraName,
         count: recitationData.count,
-        duration_minutes: recitationData.duration,
+        duration_minutes: recitationData.durationMinutes,
+        recitation_timestamp: recitationData.recitationTimestamp.toISOString(),
         notes: recitationData.notes,
       });
       return true;
@@ -307,8 +308,7 @@ class MantraService {
   // Get recitations from backend
   async getRecitations() {
     try {
-      const response = await api.getRecitations();
-      return response.data;
+      return await api.getRecitations();
     } catch (error) {
       console.error('Error fetching recitations:', error);
       return [];

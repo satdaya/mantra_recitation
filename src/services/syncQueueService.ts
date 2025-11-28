@@ -116,11 +116,19 @@ class SyncQueueService {
 
     for (const item of queue) {
       try {
+        // Ensure we have all required fields
+        if (!item.recitation.mantraName || !item.recitation.count) {
+          throw new Error('Missing required recitation fields');
+        }
+
         // Attempt to sync this recitation
         const success = await mantraService.saveRecitation({
-          mantraId: 'default', // You may want to enhance this
+          mantraName: item.recitation.mantraName,
           count: item.recitation.count,
-          duration: item.recitation.duration || 0,
+          durationMinutes: item.recitation.duration || 0,
+          recitationTimestamp: item.recitation.timestamp
+            ? new Date(item.recitation.timestamp)
+            : new Date(),
           notes: item.recitation.notes,
         });
 

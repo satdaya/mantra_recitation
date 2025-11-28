@@ -46,10 +46,10 @@ export default function ApiTest() {
     setError(null);
     try {
       const response = await api.createRecitation({
-        mantra_id: 'm1',
-        user_id: 'test-user',
+        mantra_name: 'Waheguru',
         count: 108,
         duration_minutes: 15,
+        recitation_timestamp: new Date().toISOString(),
         notes: 'Test recitation from React frontend'
       });
       setResult({ type: 'create_recitation', data: response });
